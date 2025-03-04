@@ -1,0 +1,4 @@
+{
+  "java.project.sourcePaths": ["."],
+  "java.project.referencedLibraries": ["SD_Project\\lib\\jsoup-1.19.1.jar"]
+}
