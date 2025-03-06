@@ -1,4 +1,4 @@
-package SD_Project;
+package SD_Project.src;
 
 public class Gateway {
     
