@@ -1,6 +1,5 @@
 package SD_Project.src;
 
-
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
 
