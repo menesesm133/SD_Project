@@ -8,34 +8,9 @@ import java.io.FileReader;
 import java.io.IOException;
 
 public class Downloader extends Thread{
-    String MULTICAST_ADDRESS;
-    int PORT;
 
     public Downloader() {
         super("Server: " + (long) (Math.random() * 1000));
-
-        FileReader fr = new FileReader("properties.txt");
-        try(BufferedReader br = new BufferedReader(fr)) {
-            String line;
-
-            while ((line = br.readLine()) != null) {
-                String[] token = line.split();
-
-                //Get Multicast Address
-                if (token[0] == "Multicast Address") {
-                    MULTICAST_ADDRESS = token[1];
-                }
-
-                //Get Port
-                if (token[0] == "Port") {
-                    PORT = Integer.parseInt(token[1]);
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            MULTICAST_ADDRESS = "224.3.2.1";
-            PORT = 4321;
-        }
     }
     
     private JSONObject searchURL(String url) {
