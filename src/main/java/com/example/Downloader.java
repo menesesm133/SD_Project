@@ -28,26 +28,25 @@ public class Downloader extends Thread{
     }
 
     public void run() {
-        String RMI_ADDRESS;
-        int RMI_PORT;
 
         //Read information regarding the RMI from "properties.txt"
         String path = System.getProperty("user.dir") + File.separator + "SD_Project" + File.separator + "properties.txt";
         System.out.println("Reading properties from: " + path);
         try(BufferedReader br = new BufferedReader(new FileReader(new File(path)))){
             String line;
+            String RMI_INFO = "";
 
             while((line = br.readLine()) != null) {
                 String[] token = line.split(":");
 
                 if (token[0].trim().equals("RMI Address")) {
-                    RMI_ADDRESS = token[1].trim();
-                    System.out.println("RMI Address: " + RMI_ADDRESS);
+                    RMI_INFO = token[1].trim();
+                    System.out.println(RMI_INFO);
                 }
 
                 if (token[0].trim().equals("RMI Port")) {
-                    RMI_PORT = Integer.parseInt(token[1].trim());
-                    System.out.println("RMI Port: " + RMI_PORT);
+                    RMI_INFO += ":" + Integer.parseInt(token[1].trim());
+                    System.out.println(RMI_INFO);
                 }
             }
         } catch (IOException e) {
