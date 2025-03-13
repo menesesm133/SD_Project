@@ -7,12 +7,26 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 
+/**
+ * This class is responsible for creating the downloader threads,
+ * extract information from the web pages and send it to the barrels
+ * through RMI and get urls from the queue through RMI.
+ */
 public class Downloader extends Thread{
 
+    /**
+     * Constructs a Downloader thread.
+     */
     public Downloader() {
         super("Server: " + (long) (Math.random() * 1000));
     }
     
+    /**
+     * This function serches a web page using the Jsoup library
+     * and extracts the information.
+     * @param url The url to be searched.
+     * @return The JSONObject with the information of the url.
+     */
     private JSONObject searchURL(String url) {
         System.out.println("Searching for: " + url);
         JSONObject json = new JSONObject();
