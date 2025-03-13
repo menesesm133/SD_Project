@@ -1,5 +1,6 @@
 package SD_Project.src;
 
+
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
 
@@ -36,7 +37,7 @@ public class Downloader extends Thread{
                 if (token[0].trim().equals("RMI Address")) {
                     RMI_ADDRESS = token[1].trim();
                 }
-                
+
                 if (token[0].trim().equals("RMI Port")) {
                     RMI_PORT = Integer.parseInt(token[1].trim());
                 }
@@ -96,4 +97,13 @@ public class Downloader extends Thread{
         return json;
     }
     
+    public static void main(String[] args) {
+        try {
+            Downloader downloader = new Downloader();
+            System.out.println("Starting downloader " + downloader.getName());
+            downloader.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }
