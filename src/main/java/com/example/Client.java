@@ -1,4 +1,4 @@
-package SD_Project.src;
+package com.example;
 
 import java.util.Scanner;
 
@@ -9,10 +9,10 @@ public class Client {
         "2. index\n"+
         "3. admin page\n"+
         "4. sair\n");
-    linha=sc.nextLine();
+    Scanner sc = new Scanner(System.in);
+    String linha = sc.nextLine();
     if(linha.equals("4")){
         System.out.println("Saindo...");
-        break;
     }else if(linha.equals("3")){
     }
     else if(linha.equals("2")){
@@ -23,7 +23,7 @@ public class Client {
         }catch (Exception e) {
             System.out.println("Exception indexing: " + e);
         }
-        System.out.printl("URL indexado");
+        System.out.println("URL indexado");
 
     }else if(linha.equals("1")){
         
