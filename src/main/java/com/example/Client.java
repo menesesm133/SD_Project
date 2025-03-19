@@ -53,37 +53,41 @@ public class Client {
             System.out.println("Exception: " + e);
         }
 
-        System.out.println(
-        "1. Search\n" + //Asks for URL and goes to a menu with the search results
-        "2. Index URL to Queue\n" + //Adds a URL to the queue
-        "3. Administrator Page\n" + //The admin page gets the status of the system
-        "4. Exit\n"); //Ends the client
+        try (Scanner sc = new Scanner(System.in)) {
+            while(true){
+                System.out.println(
+                "1. Search\n" + //Asks for URL and goes to a menu with the search results
+                "2. Index URL to Queue\n" + //Adds a URL to the queue
+                "3. Administrator Page\n" + //The admin page gets the status of the system
+                "4. Exit\n"); //Ends the client
 
-        Scanner sc = new Scanner(System.in);
-        String option = sc.nextLine();
+                String option = sc.nextLine();
 
-        if(option.equals("4")){
-            System.out.println("Exiting...");
-        }
+                if(option.equals("4")){
+                    System.out.println("Exiting...");
+                    break;
+                }
 
-        else if(option.equals("3")){
-            
-        }
-        
-        else if(option.equals("2")){
-            System.out.println("Adding URL: ");
-            String url = sc.nextLine();
-            try{
-                ArrayList<String[]> result = gateway.sendMessage(url, Integer.parseInt(option));
-            } catch (Exception e) {
-                System.out.println("Exception indexing: " + e);
+                else if(option.equals("3")){
+                    
+                }
+                
+                else if(option.equals("2")){
+                    System.out.println("URL to index: ");
+                    String url = sc.nextLine();
+                    try{
+                        ArrayList<String[]> result = gateway.sendMessage(url, Integer.parseInt(option));
+                    } catch (Exception e) {
+                        System.out.println("Exception indexing: " + e);
+                    }
+                    System.out.println("\nURL indexed\n");
+
+                }
+                
+                else if(option.equals("1")){
+                    
+                }
             }
-            System.out.println("URL indexed");
-
-        }
-        
-        else if(option.equals("1")){
-            
         }
     }
 
