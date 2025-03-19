@@ -1,2 +1,4 @@
-RMI Address: localhost
-RMI Port: 1099
+RMI Address Downloader: localhost
+RMI Port Downloader: 1099
+RMI Address Gateway: localhost
+RMI Port Gateway: 1099

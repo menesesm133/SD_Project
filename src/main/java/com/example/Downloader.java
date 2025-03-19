@@ -28,7 +28,6 @@ public class Downloader extends Thread{
     }
 
     public void run() {
-
         //Read information regarding the RMI from "properties.txt"
         String path = System.getProperty("user.dir") + File.separator + "SD_Project" + File.separator + "properties.txt";
         System.out.println("Reading properties from: " + path);
@@ -39,12 +38,12 @@ public class Downloader extends Thread{
             while((line = br.readLine()) != null) {
                 String[] token = line.split(":");
 
-                if (token[0].trim().equals("RMI Address")) {
+                if (token[0].trim().equals("RMI Address Downloader")) {
                     RMI_INFO = token[1].trim();
                     System.out.println(RMI_INFO);
                 }
 
-                if (token[0].trim().equals("RMI Port")) {
+                if (token[0].trim().equals("RMI Port Downloader")) {
                     RMI_INFO += ":" + Integer.parseInt(token[1].trim());
                     System.out.println(RMI_INFO);
                 }
