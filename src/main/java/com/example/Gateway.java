@@ -45,4 +45,8 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface{
 			System.out.println("[Server]: Error adding to queue.");
 		}
 	}
+
+    public static void main(String[] args) {
+        
+    }
 }
