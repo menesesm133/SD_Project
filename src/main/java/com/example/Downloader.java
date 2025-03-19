@@ -28,28 +28,45 @@ public class Downloader extends Thread{
     }
 
     public void run() {
-        //Read information regarding the RMI from "properties.txt"
-        String path = System.getProperty("user.dir") + File.separator + "SD_Project" + File.separator + "properties.txt";
-        System.out.println("Reading properties from: " + path);
-        try(BufferedReader br = new BufferedReader(new FileReader(new File(path)))){
-            String line;
+        System.out.println("Downloader thread started: " + this.getName());
+
+        while(true) {
+            //Read information regarding the RMI from "properties.txt"
+            String path = System.getProperty("user.dir") + File.separator + "SD_Project" + File.separator + "properties.txt";
             String RMI_INFO = "";
 
-            while((line = br.readLine()) != null) {
-                String[] token = line.split(":");
+            try(BufferedReader br = new BufferedReader(new FileReader(new File(path)))){
+                String line;
 
-                if (token[0].trim().equals("RMI Address Downloader")) {
-                    RMI_INFO = token[1].trim();
-                    System.out.println(RMI_INFO);
-                }
+                while((line = br.readLine()) != null) {
+                    String[] token = line.split(":");
 
-                if (token[0].trim().equals("RMI Port Downloader")) {
-                    RMI_INFO += ":" + Integer.parseInt(token[1].trim());
-                    System.out.println(RMI_INFO);
+                    if (token[0].trim().equals("RMI Address Gateway")) {
+                        RMI_INFO = token[1].trim();
+                    }
+
+                    if (token[0].trim().equals("RMI Port Gateway")) {
+                        RMI_INFO += ":" + Integer.parseInt(token[1].trim());
+                    }
                 }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+
+            try {
+                RMIClientInterface gateway = null;
+
+                try {
+                    gateway = (RMIClientInterface) java.rmi.Naming.lookup("rmi://" + RMI_INFO + "/GATEWAY");
+                } catch (Exception e) {
+                    System.out.println("Exception: " + e);
+                }
+
+                String url = gateway.popFromQueue();
+                JSONObject info = searchURL(url);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
     
@@ -97,7 +114,6 @@ public class Downloader extends Thread{
         } catch (IOException e) {
             e.printStackTrace();
             json.put("url", "Not available");
-
         }
         
         return json;

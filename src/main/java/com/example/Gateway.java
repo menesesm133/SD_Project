@@ -48,6 +48,18 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface{
         }
     }
 
+    @Override
+    public String popFromQueue() throws RemoteException {
+        try {
+            String url = urlQueue.take();
+            System.out.println("[Server]: Popped from queue: " + url);
+            return url;
+        } catch (InterruptedException e) {
+            System.out.println("[Server]: Error popping from queue.");
+            return null;
+        }
+    }
+
     public static void main(String[] args) {
         // comunica com o cliente:
         String RMI_ADDRESS = "";

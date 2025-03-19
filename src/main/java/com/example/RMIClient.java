@@ -16,6 +16,11 @@ public class RMIClient extends UnicastRemoteObject implements RMIClientInterface
         gate = inputGateway;
     }
 
+    @Override
+    public String popFromQueue() throws RemoteException {
+        return gate.popFromQueue();
+    }
+
     public ArrayList<String[]> sendMessage(String message, int option) throws RemoteException {
         switch (option) {
             case 1:
