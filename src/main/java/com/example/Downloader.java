@@ -12,6 +12,11 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This class is responsible for creating the downloader threads,
@@ -19,12 +24,26 @@ import java.io.IOException;
  * through RMI and get urls from the queue through RMI.
  */
 public class Downloader extends Thread{
+    private static Map<String, Boolean> visited = new HashMap<String, Boolean>();
 
     /**
      * Constructs a Downloader thread.
      */
     public Downloader() {
         super("Server: " + (long) (Math.random() * 1000));
+    }
+
+    public boolean ValidURL(String url) {
+        try {
+            URL check = new URL(url);
+            check.toURI();
+            if (check.getProtocol().equals("http") || check.getProtocol().equals("https")) {
+                return true;
+            }
+            return false;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public void run() {
@@ -63,7 +82,26 @@ public class Downloader extends Thread{
                 }
 
                 String url = gateway.popFromQueue();
+
+                if (!ValidURL(url)) {
+                    continue;
+                }
+
+                if (visited.containsKey(url)) {
+                    continue;
+                }
+
+                visited.put(url, true);
+
                 JSONObject info = searchURL(url);
+
+                JSONArray links = info.getJSONArray("links");
+                for (int i = 0; i < links.length(); i++) {
+                    String link = links.getString(i);
+                    if (!visited.containsKey(link)) {
+                        gateway.sendMessage(link, 2);
+                    }
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -90,15 +128,7 @@ public class Downloader extends Thread{
             json.put("title", doc.title());
 
             //Description
-            Elements paragraphs = doc.select("p");
-            StringBuilder textBuilder = new StringBuilder();
-
-            for (Element paragraph : paragraphs) {
-                textBuilder.append(paragraph.text()).append("\n");
-            }
-
-            String text = textBuilder.toString();
-            json.put("text", text);
+            json.put("description", doc.select("meta[property=og:description]").attr("content"));
 
             //Associated Urls
             Elements links = doc.select("a[href]");

@@ -6,7 +6,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.reflect.Array;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -53,7 +56,7 @@ public class Client {
             System.out.println("Exception: " + e);
         }
 
-        try (Scanner sc = new Scanner(System.in)) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8))) {
             while(true){
                 System.out.println(
                 "1. Search\n" + //Asks for URL and goes to a menu with the search results
@@ -61,7 +64,7 @@ public class Client {
                 "3. Administrator Page\n" + //The admin page gets the status of the system
                 "4. Exit\n"); //Ends the client
 
-                String option = sc.nextLine();
+                String option = reader.readLine();
 
                 if(option.equals("4")){
                     System.out.println("Exiting...");
@@ -73,9 +76,10 @@ public class Client {
                 }
                 
                 else if(option.equals("2")){
-                    System.out.println("URL to index: ");
-                    String url = sc.nextLine();
+                    System.out.println("\nURL to index:\n");
+                    String url = reader.readLine();
                     try{
+                        System.out.println("Adding URL to queue: " + url);
                         ArrayList<String[]> result = gateway.sendMessage(url, Integer.parseInt(option));
                     } catch (Exception e) {
                         System.out.println("Exception indexing: " + e);
@@ -88,6 +92,8 @@ public class Client {
                     
                 }
             }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

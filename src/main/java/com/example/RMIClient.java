@@ -1,5 +1,7 @@
 package com.example;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
@@ -27,25 +29,31 @@ public class RMIClient extends UnicastRemoteObject implements RMIClientInterface
                 break;
         
             case 2:
-                //Check URL
-                if(!message.toLowerCase().startsWith("http")){
-                    ArrayList<String[]> auxResult = new ArrayList<>();
-                    auxResult.add(new String[]{"URL not valid"});
-                    result= auxResult;
-                    break;
-                }
-
-                System.out.println("Adding URL to queue: " + message);
                 try {
-                    gate.addToQueue(message);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
+                    String url = URLDecoder.decode(message, StandardCharsets.UTF_8);
+                    //Check URL
+                    if(!url.toLowerCase().startsWith("http")){
+                        ArrayList<String[]> auxResult = new ArrayList<>();
+                        auxResult.add(new String[]{"URL not valid"});
+                        result= auxResult;
+                        break;
+                    }
 
-                //Result
-                ArrayList<String[]> auxResult = new ArrayList<>();
-                auxResult.add(new String[]{"URL added"});
-                result= auxResult;
+                    System.out.println("Adding URL to queue: " + url);
+
+                    try {
+                        gate.addToQueue(url);
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
+
+                    //Result
+                    ArrayList<String[]> auxResult = new ArrayList<>();
+                    auxResult.add(new String[]{"URL added"});
+                    result= auxResult;
+                } catch (Exception e) {
+                    System.out.println("Exception indexing: " + e);
+                }
             }
 
         return result;
