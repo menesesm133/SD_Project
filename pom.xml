@@ -16,9 +16,7 @@
         <dependency>
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
-            <version>1.19.1</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/lib/jsoup-1.19.1.jar</systemPath>
+            <version>1.15.3</version>
         </dependency>
 
         <!-- JSON Processing Library -->
