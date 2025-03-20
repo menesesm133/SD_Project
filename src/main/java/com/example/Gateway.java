@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.rmi.*;
 import java.rmi.server.*;
 import java.rmi.registry.*;
@@ -60,13 +62,51 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface{
         }
     }
 
+    public ArrayList<String[]> sendMessage(String message, int option) throws RemoteException {
+        ArrayList<String[]> result = new ArrayList<String[]>();
+
+        switch (option) {
+            case 1:
+                break;
+        
+            case 2:
+                try {
+                    String url = URLDecoder.decode(message, StandardCharsets.UTF_8);
+                    //Check URL
+                    if(!url.toLowerCase().startsWith("http")){
+                        ArrayList<String[]> auxResult = new ArrayList<>();
+                        auxResult.add(new String[]{"URL not valid"});
+                        result= auxResult;
+                        break;
+                    }
+
+                    System.out.println("Adding URL to queue: " + url);
+
+                    try {
+                        this.addToQueue(url);
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
+
+                    //Result
+                    ArrayList<String[]> auxResult = new ArrayList<>();
+                    auxResult.add(new String[]{"URL added"});
+                    result= auxResult;
+                } catch (Exception e) {
+                    System.out.println("Exception indexing: " + e);
+                }
+            }
+
+        return result;
+    }
+
     public static void main(String[] args) {
         // comunica com o cliente:
         String RMI_ADDRESS = "";
         int RMI_PORT = 0;
 
         //Read information regarding the RMI from "properties.txt"
-        String path = System.getProperty("user.dir") + File.separator + "SD_Project" + File.separator + "properties.txt";
+        String path =  "properties.txt";
         System.out.println("Reading properties from: " + path);
         try(BufferedReader br = new BufferedReader(new FileReader(new File(path)))){
             String line;
@@ -79,7 +119,7 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface{
                     System.out.println(RMI_ADDRESS);
                 }
 
-                if (token[0].trim().equals("RMI Port Gateway")) {
+                if (token[0].trim().equals("RMI Port")) {
                     RMI_PORT = Integer.parseInt(token[1].trim());
                     System.out.println(RMI_PORT);
                 }
@@ -90,21 +130,25 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface{
 
         try {
             System.out.println("Starting Gateway...");
-            RMIClient client = new RMIClient();
             Gateway gateway = new Gateway();
-            client.AddGateway(gateway);
 
             // Start the RMI registry if not already running
             try {
                 LocateRegistry.createRegistry(RMI_PORT);
                 System.out.println("RMI Registry created at port " + RMI_PORT);
-                Naming.rebind("rmi://" + RMI_ADDRESS + ":" + RMI_PORT + "/GATEWAY", client);
-
             } catch (RemoteException e) {
                 System.out.println("RMI Registry already running.");
             }
 
-            System.out.println("Gateway bound to RMI at " + RMI_ADDRESS + ":" + RMI_PORT);
+            try {
+                Naming.rebind("rmi://" + RMI_ADDRESS + ":" + RMI_PORT + "/GATEWAY", gateway);
+                System.out.println("Gateway bound to RMI at " + RMI_ADDRESS + ":" + RMI_PORT);
+            } catch (RemoteException e) {
+                System.out.println("Failed to bind Gateway: " + e.getMessage());
+            }
+
+            
+
         } catch (Exception e) {
             e.printStackTrace();
         }

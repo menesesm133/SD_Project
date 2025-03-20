@@ -1,7 +1,5 @@
 package com.example;
 
-import com.example.GatewayInterface;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -24,7 +22,7 @@ public class Client {
 
     private void menu(){
         //Read information regarding the RMI from "properties.txt"
-        String path = System.getProperty("user.dir") + File.separator + "SD_Project" + File.separator + "properties.txt";
+        String path = "properties.txt";
         System.out.println("Reading properties from: " + path);
         String RMI_INFO = "";
 
@@ -39,7 +37,7 @@ public class Client {
                     System.out.println(RMI_INFO);
                 }
 
-                if (token[0].trim().equals("RMI Port Gateway")) {
+                if (token[0].trim().equals("RMI Port")) {
                     RMI_INFO += ":" + Integer.parseInt(token[1].trim());
                     System.out.println(RMI_INFO);
                 }
@@ -48,10 +46,10 @@ public class Client {
             e.printStackTrace();
         }
 
-        RMIClientInterface gateway = null;
+        GatewayInterface gateway = null;
 
         try {
-            gateway = (RMIClientInterface) java.rmi.Naming.lookup("rmi://" + RMI_INFO + "/GATEWAY");
+            gateway = (GatewayInterface) java.rmi.Naming.lookup("rmi://" + RMI_INFO + "/GATEWAY");
         } catch (Exception e) {
             System.out.println("Exception: " + e);
         }

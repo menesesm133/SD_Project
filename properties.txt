@@ -1,4 +1,3 @@
 RMI Address Downloader: localhost
-RMI Port Downloader: 1099
+RMI Port: 1099
 RMI Address Gateway: localhost
-RMI Port Gateway: 1090

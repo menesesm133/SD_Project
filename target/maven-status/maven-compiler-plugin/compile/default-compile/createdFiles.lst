@@ -1,0 +1,5 @@
+com/example/GatewayInterface.class
+com/example/Client.class
+com/example/Downloader.class
+com/example/IndexStorageBarrel.class
+com/example/Gateway.class

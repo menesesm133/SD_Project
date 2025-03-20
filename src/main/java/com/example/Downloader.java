@@ -51,7 +51,7 @@ public class Downloader extends Thread{
 
         while(true) {
             //Read information regarding the RMI from "properties.txt"
-            String path = System.getProperty("user.dir") + File.separator + "SD_Project" + File.separator + "properties.txt";
+            String path = "properties.txt";
             String RMI_INFO = "";
 
             try(BufferedReader br = new BufferedReader(new FileReader(new File(path)))){
@@ -64,7 +64,7 @@ public class Downloader extends Thread{
                         RMI_INFO = token[1].trim();
                     }
 
-                    if (token[0].trim().equals("RMI Port Gateway")) {
+                    if (token[0].trim().equals("RMI Port")) {
                         RMI_INFO += ":" + Integer.parseInt(token[1].trim());
                     }
                 }
@@ -73,10 +73,10 @@ public class Downloader extends Thread{
             }
 
             try {
-                RMIClientInterface gateway = null;
+                GatewayInterface gateway = null;
 
                 try {
-                    gateway = (RMIClientInterface) java.rmi.Naming.lookup("rmi://" + RMI_INFO + "/GATEWAY");
+                    gateway = (GatewayInterface) java.rmi.Naming.lookup("rmi://" + RMI_INFO + "/GATEWAY");
                 } catch (Exception e) {
                     System.out.println("Exception: " + e);
                 }
