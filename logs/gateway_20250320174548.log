@@ -1,0 +1,11 @@
+Reading properties from: C:\Users\Utilizador\SD_PROJECT(2025)\SD_Project\SD_Project\properties.txt
+java.io.FileNotFoundException: C:\Users\Utilizador\SD_PROJECT(2025)\SD_Project\SD_Project\properties.txt (The system cannot find the path specified)
+	at java.base/java.io.FileInputStream.open0(Native Method)
+	at java.base/java.io.FileInputStream.open(FileInputStream.java:219)
+	at java.base/java.io.FileInputStream.<init>(FileInputStream.java:158)
+	at java.base/java.io.FileReader.<init>(FileReader.java:75)
+	at com.example.Gateway.main(Gateway.java:71)
+Starting Gateway...
+RMI Registry created at port 0
+RMI Registry already running.
+Gateway bound to RMI at :0
