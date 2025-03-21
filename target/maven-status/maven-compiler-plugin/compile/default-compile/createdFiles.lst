@@ -1,5 +1,6 @@
+com/example/StorageBarrel.class
 com/example/GatewayInterface.class
 com/example/Client.class
 com/example/Downloader.class
-com/example/IndexStorageBarrel.class
+com/example/StorageBarrelInterface.class
 com/example/Gateway.class

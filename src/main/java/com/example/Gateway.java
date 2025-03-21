@@ -6,18 +6,18 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.rmi.*;
-import java.rmi.server.*;
-import java.rmi.registry.*;
+import java.rmi.Naming;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.concurrent.*;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 //
 public class Gateway extends UnicastRemoteObject implements GatewayInterface{
-    BlockingQueue<String> urlQueue;
+    private BlockingQueue<String> urlQueue;
+    private ArrayList<StorageBarrelInterface> activeBarrels;
     //Gateway
     /**
      * Constructs a new Gateway instance.
@@ -26,21 +26,13 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface{
      */
     public Gateway() throws RemoteException {
         try {
-
-            // try catch -> para a comunicação com o cliente
-            //
             //Create a shared queue for URLs
             urlQueue = new LinkedBlockingQueue<>();
-
-            //RMI Barrel
-            // b = new RMIBarrel();
-            // Naming.rebind("BARREL", b);
-            // b.addClient(g);
+            activeBarrels = new ArrayList<>();
 
         } catch (Exception e) {System.out.println("Exception: " + e); }
     }
     
-    @Override
     public void addToQueue(String url) throws RemoteException {
         try {
             urlQueue.put(url);
@@ -50,7 +42,6 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface{
         }
     }
 
-    @Override
     public String popFromQueue() throws RemoteException {
         try {
             String url = urlQueue.take();
@@ -64,6 +55,8 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface{
 
     public ArrayList<String[]> sendMessage(String message, int option) throws RemoteException {
         ArrayList<String[]> result = new ArrayList<String[]>();
+
+        System.out.println(activeBarrels.get(0).teste());
 
         switch (option) {
             case 1://Admin Page
@@ -105,6 +98,27 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface{
 
         return result;
     }
+
+    public ArrayList<StorageBarrelInterface> getBarrels(StorageBarrelInterface mine) throws RemoteException{
+        ArrayList<StorageBarrelInterface> result = new ArrayList<>();
+		for (StorageBarrelInterface barrel : activeBarrels) {
+			if (barrel != mine) {
+				result.add(barrel);
+			}
+		}
+		return result;
+    }
+
+    public void addBarrel(StorageBarrelInterface barrel) throws RemoteException{
+        System.out.println(this.getBarrels(barrel).toString());
+        activeBarrels.add(barrel);
+    }
+
+    public void removeBarrel(StorageBarrelInterface barrel) throws RemoteException{
+        activeBarrels.remove(barrel);
+    }
+
+
 
     public static void main(String[] args) {
         // comunica com o cliente:

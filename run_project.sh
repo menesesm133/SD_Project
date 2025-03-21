@@ -51,10 +51,16 @@ java $JAVA_OPTS -cp "$CLASSPATH" com.example.Downloader > "$LOG_DIR/downloader_$
 DOWNLOADER_PID=$!
 sleep 2
 
+echo "🛢️ Starting Barrel - 1..."
+java $JAVA_OPTS -cp "$CLASSPATH" com.example.StorageBarrel > "$LOG_DIR/Barrel-1_$(date +%Y%m%d%H%M%S).log" 2>&1 &
+BARREL1_PID=$!
+sleep 2
+
 
 echo "✅ All services started successfully!"
 echo "👉 Gateway PID: $GATEWAY_PID"
 echo "👉 Downloader PID: $DOWNLOADER_PID"
+echo "👉 Barrel-1 PID: $BARREL1_PID"
 
 # Start Client
 echo "💻 Starting Client..."
@@ -65,10 +71,10 @@ sleep 2
 echo "ℹ️  Press CTRL+C (^C) to stop all processes ℹ️"
 
 # Shutdown handler (CTRL+C)
-trap "echo '\n🛑 Stopping everything...'; kill $GATEWAY_PID $DOWNLOADER_PID $CLIENT_PID; exit 0" SIGINT
+trap "echo '\n🛑 Stopping everything...'; kill $GATEWAY_PID $DOWNLOADER_PID $CLIENT_PID $BARREL1_PID; exit 0" SIGINT
 
 # Wait for all processes to finish
-wait $GATEWAY_PID $DOWNLOADER_PID
+wait $GATEWAY_PID $DOWNLOADER_PID $BARREL1_PID
 
 # If RMI was started by this script, stop it too
 if [ -n "$RMI_PID" ]; then
