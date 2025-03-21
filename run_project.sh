@@ -1,10 +1,15 @@
 #!/bin/bash
 
 # Set project paths
-PROJECT_ROOT=$(dirname "$(realpath "$0")")
-CLASSPATH="$PROJECT_ROOT/target/SD_Project-1.0-SNAPSHOT.jar:lib/jsoup-1.19.1.jar"
+if [[ "$(uname)" == "MINGW64"* || "$(uname)" == "CYGWIN"* ]]; then
+    SEP=";"
+else
+    SEP=":"
+fi
+
+CLASSPATH="./target/SD_Project-1.0-SNAPSHOT.jar${SEP}lib/jsoup-1.19.1.jar"
 JAVA_OPTS="-Xmx512m -Xms256m"
-LOG_DIR="$PROJECT_ROOT/logs"
+LOG_DIR="./logs"
 mkdir -p "$LOG_DIR"
 
 # Ensure Maven is installed

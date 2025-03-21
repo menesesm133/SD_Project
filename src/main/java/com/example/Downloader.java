@@ -128,7 +128,31 @@ public class Downloader extends Thread{
             json.put("title", doc.title());
 
             //Description
-            json.put("description", doc.select("meta[property=og:description]").attr("content"));
+            if (doc.select("meta[property=og:description]").attr("content").equals("")) {
+                Elements paragraphs = doc.select("p");
+                StringBuilder textBuilder = new StringBuilder();
+                int count = 0;//Counts words
+                for (Element paragraph : paragraphs) {
+                    String[] words = paragraph.text().split("\\s+");//Seperates words by spaces
+                    for (String word : words) {
+                        if (count >= 100) {
+                            break;
+                        }
+                        textBuilder.append(word).append(" ");
+                        count++;
+                    }
+                    if (count >= 100) {
+                        break;
+                    }
+                
+                }
+
+                String text = textBuilder.toString().trim();
+                json.put("text", text);
+                System.out.println("Text: " + text);
+            } else {
+                json.put("description", doc.select("meta[property=og:description]").attr("content"));
+            }
 
             //Associated Urls
             Elements links = doc.select("a[href]");
