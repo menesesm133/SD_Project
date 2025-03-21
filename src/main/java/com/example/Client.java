@@ -58,50 +58,59 @@ public class Client {
             while(true){
                 System.out.println(
                 "1. Search\n" + //Asks for URL and goes to a menu with the search results
-                "2. Administrator Page\n" + //The admin page gets the status of the system
-                "3. Exit\n"); //Ends the client
+                "2. Index URL\n" + //Asks for URL and indexes it
+                "3. Administrator Page\n" + //The admin page gets the status of the system
+                "4. Exit\n"); //Ends the client
 
                 String option = reader.readLine();
 
-                if(option.equals("3")){
+                if(option.equals("4")){
                     System.out.println("Exiting...");
                     break;
                 }
 
-                else if(option.equals("2")){
+                else if(option.equals("3")){
                     ArrayList<String[]> result = gateway.sendMessage("Admin", 1);
                     System.out.println("System status: ");
                     for (String[] s : result) {
                         System.out.println(s[0] + ": " + s[1]);
                     }
                 }
+
+                else if(option.equals(option)) {
+                    System.out.println("URL to index: ");
+                    String url = reader.readLine();
+                    try{
+                        ArrayList<String[]> result = gateway.sendMessage(url, 2);
+                    } catch (Exception e) {
+                        System.out.println("Exception indexing: " + e);
+                    }
+                }
                 
                 else if(option.equals("1")){
-                    System.out.println("\n1. Search by URL\n" +
-                    "2. Search by keyword\n" +
-                    "3. Search by Top 10\n" +
-                    "4. Exit\n");
+                    System.out.println("\n1. Search\n" +
+                    "2. Search Top 10\n" +
+                    "3. Exit\n");
 
                     String search = reader.readLine();
 
-                    if (search.equals("4")) {
+                    if (search.equals("3")) {
                         System.out.println("Exiting...");
                         break;
                     }
 
                     else if (search.equals("1")) {
-                        System.out.println("URL to search: ");
-                        String url = reader.readLine();
+                        String keyword = reader.readLine();
 
-                        if(url.toLowerCase().startsWith("http")){
+                        if(keyword.toLowerCase().startsWith("http")){
                             try{
-                                System.out.println("Adding URL to queue: " + url);
-                                ArrayList<String[]> result = gateway.sendMessage(url, 2);
+                                System.out.println("Adding URL to queue: " + keyword);
+                                ArrayList<String[]> result = gateway.sendMessage(keyword, 3);
                             } catch (Exception e) {
                                 System.out.println("Exception indexing: " + e);
                             }
                         } else {
-                            ArrayList<String[]> result = gateway.sendMessage(url, 3);
+                            ArrayList<String[]> result = gateway.sendMessage(keyword, 4);
                             System.out.println("Search results: ");
                             for (String[] s : result) {
                                 System.out.println(s[0] + ": " + s[1]);
@@ -110,17 +119,7 @@ public class Client {
                     }
 
                     else if (search.equals("2")) {
-                        System.out.println("Keyword to search: ");
-                        String keyword = reader.readLine();
-                        ArrayList<String[]> result = gateway.sendMessage(keyword, 4);
-                        System.out.println("Search results: ");
-                        for (String[] s : result) {
-                            System.out.println(s[0] + ": " + s[1]);
-                        }
-                    }
-
-                    else if (search.equals("3")) {
-                        ArrayList<String[]> result = gateway.sendMessage("Top10", 5);
+                        ArrayList<String[]> result = gateway.sendMessage("Top10", 6);
                         System.out.println("Top 10 results: ");
                         int i = 0;
                         for (String[] s : result) {
