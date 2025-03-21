@@ -66,10 +66,10 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface{
         ArrayList<String[]> result = new ArrayList<String[]>();
 
         switch (option) {
-            case 1:
+            case 1://Admin Page
                 break;
         
-            case 2:
+            case 2://Index URL
                 try {
                     String url = URLDecoder.decode(message, StandardCharsets.UTF_8);
                     //Check URL
@@ -95,7 +95,13 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface{
                 } catch (Exception e) {
                     System.out.println("Exception indexing: " + e);
                 }
-            }
+            case 3://Search URL
+                break;
+            case 4://Search Keyword
+                break;
+            case 5://Top 10
+                break;
+        }
 
         return result;
     }
