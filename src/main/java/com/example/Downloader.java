@@ -1,22 +1,17 @@
 package com.example;
 
-import org.json.JSONObject;
-import org.json.JSONArray;
-
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-import org.jsoup.Jsoup;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.URL;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 /**
  * This class is responsible for creating the downloader threads,
@@ -24,7 +19,6 @@ import java.util.Map;
  * through RMI and get urls from the queue through RMI.
  */
 public class Downloader extends Thread{
-    private static Map<String, Boolean> visited = new HashMap<String, Boolean>();
 
     /**
      * Constructs a Downloader thread.
@@ -87,19 +81,26 @@ public class Downloader extends Thread{
                     continue;
                 }
 
-                if (visited.containsKey(url)) {
-                    continue;
-                }
-
-                visited.put(url, true);
-
                 JSONObject info = searchURL(url);
+
+                // Send info to all barrels
+                try {
+                    for (StorageBarrelInterface b : gateway.getBarrels(0)){
+                        b.addInfo(info.toString(), true);
+                    }
+                } catch (Exception e) {
+                    System.out.println("Error sending info to Barrels");
+                    e.printStackTrace();
+                }
 
                 JSONArray links = info.getJSONArray("links");
                 for (int i = 0; i < links.length(); i++) {
                     String link = links.getString(i);
-                    if (!visited.containsKey(link)) {
-                        gateway.sendMessage(link, 2);
+                    try {
+                        gateway.sendMessage((String) link, 2);
+                    } catch (Exception e) {
+                        System.out.println("Error sending message: " + e.getMessage());
+                        // Continue processing other links
                     }
                 }
             } catch (Exception e) {

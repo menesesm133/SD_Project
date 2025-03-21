@@ -11,6 +11,8 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -18,6 +20,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class Gateway extends UnicastRemoteObject implements GatewayInterface{
     private BlockingQueue<String> urlQueue;
     private ArrayList<StorageBarrelInterface> activeBarrels;
+    private static Map<String, Boolean> visited;
     //Gateway
     /**
      * Constructs a new Gateway instance.
@@ -29,14 +32,20 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface{
             //Create a shared queue for URLs
             urlQueue = new LinkedBlockingQueue<>();
             activeBarrels = new ArrayList<>();
+            visited = new HashMap<String, Boolean>();
 
         } catch (Exception e) {System.out.println("Exception: " + e); }
     }
     
     public void addToQueue(String url) throws RemoteException {
         try {
-            urlQueue.put(url);
-            System.out.println("[Server]: Added to queue: " + url);
+            if (!visited.containsKey(url)) {
+                urlQueue.put(url);
+                visited.put(url, true);
+                System.out.println("[Server]: Added to queue: " + url);
+            } else {
+                System.out.println("Url: \"" + url + "\" already added!");
+            }
         } catch (InterruptedException e) {
             System.out.println("[Server]: Error adding to queue.");
         }
@@ -55,8 +64,6 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface{
 
     public ArrayList<String[]> sendMessage(String message, int option) throws RemoteException {
         ArrayList<String[]> result = new ArrayList<String[]>();
-
-        System.out.println(activeBarrels.get(0).teste());
 
         switch (option) {
             case 1://Admin Page
@@ -99,10 +106,10 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface{
         return result;
     }
 
-    public ArrayList<StorageBarrelInterface> getBarrels(StorageBarrelInterface mine) throws RemoteException{
+    public ArrayList<StorageBarrelInterface> getBarrels(long myId) throws RemoteException{
         ArrayList<StorageBarrelInterface> result = new ArrayList<>();
 		for (StorageBarrelInterface barrel : activeBarrels) {
-			if (barrel != mine) {
+			if (barrel.getId() != myId) {
 				result.add(barrel);
 			}
 		}
@@ -110,7 +117,6 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface{
     }
 
     public void addBarrel(StorageBarrelInterface barrel) throws RemoteException{
-        System.out.println(this.getBarrels(barrel).toString());
         activeBarrels.add(barrel);
     }
 
