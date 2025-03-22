@@ -21,6 +21,16 @@ public class StorageBarrel extends UnicastRemoteObject implements StorageBarrelI
 
     public StorageBarrel() throws RemoteException {
         super();
+        File file = new File("Storage/Barrel-" + id + ".json");
+        try {
+            if (file.createNewFile()) {
+                System.out.println("Barrel file created: " + file.getName());
+            } else {
+                System.out.println("File already exists.");
+            }
+        } catch (IOException e) {
+            System.out.println("❌ Error creating data file for Barrel-" + id);
+        }
     }
 
     @Override
@@ -61,19 +71,38 @@ public class StorageBarrel extends UnicastRemoteObject implements StorageBarrelI
     public void addInfo(String info, boolean downloader) throws RemoteException {
         try {
             ArrayList<JSONObject> data = getInfo();
-            JSONObject newJson = new JSONObject(info);
+            JSONObject json = new JSONObject(info);
             
             // Custom check for duplicate JSONObjects by comparing their string representation
             boolean isDuplicate = false;
             for (JSONObject existingJson : data) {
-                if (existingJson.similar(newJson) || existingJson.toString().equals(newJson.toString())) {
+                // Check if duplicate
+                if (existingJson.similar(json) || existingJson.toString().equals(json.toString())) {
                     isDuplicate = true;
-                    break;
+                }
+
+                String urlAdd = json.getString("url");
+                String urlLoop = existingJson.getString("url");
+                // Se url adicionado está em [links] de cada um deles: se sim, adicionar url[i] -> linksTo
+                JSONArray links = existingJson.getJSONArray("links");
+                for (int i = 0; i < links.length(); i++) {
+                    if (links.getString(i).equals(urlAdd)){
+                        json.append("linksTo", urlLoop);
+                        break;
+                    }
+                }
+                // Se url adicionado possui url[i] em links, url[i][LinksTo] -> url
+                links = json.getJSONArray("links");
+                for (int i = 0; i < links.length(); i++) {
+                    if (links.getString(i).equals(urlLoop)){
+                        existingJson.append("linksTo", urlAdd);
+                        break;
+                    }
                 }
             }
             
             if (!isDuplicate) {
-                data.add(newJson);
+                data.add(json);
 
                 try (FileWriter fileWriter = new FileWriter("Storage/Barrel-" + id + ".json")) {
                     // Write the data to file as a JSON array

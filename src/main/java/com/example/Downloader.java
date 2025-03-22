@@ -165,6 +165,7 @@ public class Downloader extends Thread{
             }
 
             json.put("links", linksArray);
+            json.put("linksTo", new JSONArray());
 
         } catch (IOException e) {
             e.printStackTrace();
