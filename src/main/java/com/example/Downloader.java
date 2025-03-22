@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.URL;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -47,7 +48,8 @@ public class Downloader extends Thread{
         while(true) {
             //Read information regarding the RMI from "properties.txt"
             String path = "properties.txt";
-            String RMI_INFO = "";
+            String RMI_ADDRESS = "";
+            int RMI_PORT = 0;
 
             try(BufferedReader br = new BufferedReader(new FileReader(new File(path)))){
                 String line;
@@ -56,11 +58,11 @@ public class Downloader extends Thread{
                     String[] token = line.split(":");
 
                     if (token[0].trim().equals("RMI Address Gateway")) {
-                        RMI_INFO = token[1].trim();
+                        RMI_ADDRESS = token[1].trim();
                     }
 
                     if (token[0].trim().equals("RMI Port")) {
-                        RMI_INFO += ":" + Integer.parseInt(token[1].trim());
+                        RMI_PORT = Integer.parseInt(token[1].trim());
                     }
                 }
             } catch (IOException e) {
@@ -71,7 +73,19 @@ public class Downloader extends Thread{
                 GatewayInterface gateway = null;
 
                 try {
-                    gateway = (GatewayInterface) java.rmi.Naming.lookup("rmi://" + RMI_INFO + "/GATEWAY");
+                    if(RMI_ADDRESS.equals("localhost")){
+                        LocateRegistry.createRegistry(RMI_PORT);
+                        System.out.println("RMI Registry created at port " + RMI_PORT);
+                    }else{
+                        LocateRegistry.getRegistry(RMI_ADDRESS, RMI_PORT);
+                        System.out.println("RMI Registry attatched at port " + RMI_PORT);
+                    }
+                } catch (RemoteException e) {
+                    System.out.println("RMI Registry already running.");
+                }
+
+                try {
+                    gateway = (GatewayInterface) java.rmi.Naming.lookup("rmi://" + RMI_ADDRESS + ":" + RMI_PORT +"/GATEWAY");
                 } catch (Exception e) {
                     System.out.println("Exception: " + e);
                 }

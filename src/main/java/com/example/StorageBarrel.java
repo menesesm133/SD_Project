@@ -196,8 +196,8 @@ public class StorageBarrel extends UnicastRemoteObject implements StorageBarrelI
 
     public static void main(String[] args) {
         String path = "properties.txt";
-        String RMI_SERVER = "";
-        String RMI_PORT = "";
+        String RMI_ADDRESS = "";
+        int RMI_PORT = 0;
 
         // Read configuration from properties.txt
         try (BufferedReader br = new BufferedReader(new FileReader(new File(path)))) {
@@ -205,10 +205,10 @@ public class StorageBarrel extends UnicastRemoteObject implements StorageBarrelI
             while ((line = br.readLine()) != null) {
                 String[] token = line.split(":");
                 if (token[0].trim().equals("RMI Address Gateway")) {
-                    RMI_SERVER = token[1].trim();
+                    RMI_ADDRESS = token[1].trim();
                 }
                 if (token[0].trim().equals("RMI Port")) {
-                    RMI_PORT = token[1].trim();
+                    RMI_PORT = Integer.parseInt(token[1].trim());
                 }
             }
         } catch (IOException e) {
@@ -219,21 +219,26 @@ public class StorageBarrel extends UnicastRemoteObject implements StorageBarrelI
             barrel = new StorageBarrel();
 
             try {
-                LocateRegistry.createRegistry(Integer.parseInt(RMI_PORT));
-                System.out.println("RMI Registry created at port " + RMI_PORT);
+                if(RMI_ADDRESS.equals("localhost")){
+                    LocateRegistry.createRegistry(RMI_PORT);
+                    System.out.println("RMI Registry created at port " + RMI_PORT);
+                }else{
+                    LocateRegistry.getRegistry(RMI_ADDRESS, RMI_PORT);
+                    System.out.println("RMI Registry attatched at port " + RMI_PORT);
+                }
             } catch (RemoteException e) {
                 System.out.println("RMI Registry already running.");
             }
 
             try {
-                Naming.rebind("rmi://" + RMI_SERVER + ":" + RMI_PORT + "/BARREL-" + id, barrel);
-                System.out.println("Barrel bound to RMI at " + RMI_SERVER + ":" + RMI_PORT);
+                Naming.rebind("rmi://" + RMI_ADDRESS + ":" + RMI_PORT + "/BARREL-" + id, barrel);
+                System.out.println("Barrel bound to RMI at " + RMI_ADDRESS + ":" + RMI_PORT);
             } catch (RemoteException e) {
                 System.out.println("Failed to bind Barrel: " + e.getMessage());
             }
 
             // Lookup the gateway interface
-            gateway = (GatewayInterface) Naming.lookup("rmi://" + RMI_SERVER + ":" + RMI_PORT + "/GATEWAY");
+            gateway = (GatewayInterface) Naming.lookup("rmi://" + RMI_ADDRESS + ":" + RMI_PORT + "/GATEWAY");
             gateway.addBarrel(barrel, id);
             System.out.println("[Barrel-" + id + "]: Added to gateway.");
             

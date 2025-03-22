@@ -44,6 +44,8 @@ public class Client {
 
         GatewayInterface gateway = null;
 
+        System.out.println("Gateway 1: "+ gateway );
+
         try {
             gateway = (GatewayInterface) java.rmi.Naming.lookup("rmi://" + RMI_INFO + "/GATEWAY");
         } catch (Exception e) {
