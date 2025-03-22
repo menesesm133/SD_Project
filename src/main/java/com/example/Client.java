@@ -62,6 +62,8 @@ public class Client {
                 "3. Administrator Page\n" + //The admin page gets the status of the system
                 "4. Exit\n"); //Ends the client
 
+                System.out.println("Choose an option: ");
+
                 String option = reader.readLine();
 
                 if(option.equals("4")){
@@ -70,18 +72,18 @@ public class Client {
                 }
 
                 else if(option.equals("3")){
-                    ArrayList<String[]> result = gateway.sendMessage("Admin", 1);
+                    ArrayList<String> result = gateway.sendMessage("Admin", 1);
                     System.out.println("System status: ");
-                    for (String[] s : result) {
-                        System.out.println(s[0] + ": " + s[1]);
+                    for (String s : result) {
+                        System.out.println(s);
                     }
                 }
 
-                else if(option.equals(option)) {
+                else if(option.equals("2")) {
                     System.out.println("URL to index: ");
                     String url = reader.readLine();
                     try{
-                        ArrayList<String[]> result = gateway.sendMessage(url, 2);
+                        ArrayList<String> result = gateway.sendMessage(url, 2);
                     } catch (Exception e) {
                         System.out.println("Exception indexing: " + e);
                     }
@@ -89,12 +91,11 @@ public class Client {
                 
                 else if(option.equals("1")){
                     System.out.println("\n1. Search\n" +
-                    "2. Search Top 10\n" +
-                    "3. Exit\n");
+                    "2. Exit\n");
 
                     String search = reader.readLine();
 
-                    if (search.equals("3")) {
+                    if (search.equals("2")) {
                         System.out.println("Exiting...");
                         break;
                     }
@@ -105,25 +106,44 @@ public class Client {
                         if(keyword.toLowerCase().startsWith("http")){
                             try{
                                 System.out.println("Adding URL to queue: " + keyword);
-                                ArrayList<String[]> result = gateway.sendMessage(keyword, 3);
+                                ArrayList<String> result = gateway.sendMessage(keyword, 3);
+                                int count = 0;
+                                System.out.println("Search results: ");
+
+                                for (String s : result) {
+                                    System.out.println(s);
+                                    count++;
+                                    if(count == 10){
+                                        System.out.println("1. Next page ->\n" +
+                                        "2. Exit\n");
+                                        if (reader.readLine().equals("2")) {
+                                            break;
+                                        } else if (reader.readLine().equals("1")) {
+                                            count = 0;
+                                        }
+                                    }
+                                }
                             } catch (Exception e) {
                                 System.out.println("Exception indexing: " + e);
                             }
                         } else {
-                            ArrayList<String[]> result = gateway.sendMessage(keyword, 4);
+                            ArrayList<String> result = gateway.sendMessage(keyword, 4);
+                            int count = 0;
                             System.out.println("Search results: ");
-                            for (String[] s : result) {
-                                System.out.println(s[0] + ": " + s[1]);
-                            }
-                        }
-                    }
 
-                    else if (search.equals("2")) {
-                        ArrayList<String[]> result = gateway.sendMessage("Top10", 6);
-                        System.out.println("Top 10 results: ");
-                        int i = 0;
-                        for (String[] s : result) {
-                            System.out.println(i + ": " + s[0]);//O i vai ser o rank e o s[0] o url
+                            for (String s : result) {
+                                System.out.println(s);
+                                count++;
+                                if(count == 10){
+                                    System.out.println("1. Next page ->\n" +
+                                    "2. Exit\n");
+                                    if (reader.readLine().equals("2")) {
+                                        break;
+                                    } else if (reader.readLine().equals("1")) {
+                                        count = 0;
+                                    }
+                                }
+                            }
                         }
                     }
                 }

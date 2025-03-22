@@ -62,8 +62,8 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface{
         }
     }
 
-    public ArrayList<String[]> sendMessage(String message, int option) throws RemoteException {
-        ArrayList<String[]> result = new ArrayList<String[]>();
+    public ArrayList<String> sendMessage(String message, int option) throws RemoteException {
+        ArrayList<String> result = new ArrayList<String>();
 
         switch (option) {
             case 1://Admin Page
@@ -74,8 +74,8 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface{
                     String url = URLDecoder.decode(message, StandardCharsets.UTF_8);
                     //Check URL
                     if(!url.toLowerCase().startsWith("http")){
-                        ArrayList<String[]> auxResult = new ArrayList<>();
-                        auxResult.add(new String[]{"URL not valid"});
+                        ArrayList<String> auxResult = new ArrayList<>();
+                        auxResult.add("URL not valid");
                         result= auxResult;
                         break;
                     }
@@ -89,18 +89,51 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface{
                     }
 
                     //Result
-                    ArrayList<String[]> auxResult = new ArrayList<>();
-                    auxResult.add(new String[]{"URL added"});
+                    ArrayList<String> auxResult = new ArrayList<>();
+                    auxResult.add("URL added");
                     result= auxResult;
                 } catch (Exception e) {
                     System.out.println("Exception indexing: " + e);
                 }
             case 3://Search URL
-                break;
+                try {
+                    String url = URLDecoder.decode(message, StandardCharsets.UTF_8);
+                    //Check URL
+                    if(!url.toLowerCase().startsWith("http")){
+                        ArrayList<String> auxResult = new ArrayList<>();
+                        auxResult.add("URL not valid");
+                        result= auxResult;
+                        break;
+                    }
+
+                    System.out.println("Searching URL: " + url);
+
+                    try {
+                        for (StorageBarrelInterface b : this.getBarrels(0)){
+                            //result = b.SearchURL(url);
+                        }
+                    } catch (Exception e) {
+                        System.out.println("Error sending info to Barrels");
+                        e.printStackTrace();
+                    }
+                } catch (Exception e) {
+                    System.out.println("Exception indexing: " + e);
+                }
             case 4://Search Keyword
-                break;
-            case 5://Top 10
-                break;
+            try {
+                System.out.println("Searching: " + message);
+
+                try {
+                    for (StorageBarrelInterface b : this.getBarrels(0)){
+                        //result = b.SearchWord(url);
+                    }
+                } catch (Exception e) {
+                    System.out.println("Error sending info to Barrels");
+                    e.printStackTrace();
+                }
+            } catch (Exception e) {
+                System.out.println("Exception indexing: " + e);
+            }
         }
 
         return result;
