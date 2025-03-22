@@ -122,7 +122,6 @@ public class StorageBarrel extends UnicastRemoteObject implements StorageBarrelI
 
         } catch (Exception e) {
             System.out.println("[Barrel-" + id + "]: Error adding info!");
-            e.printStackTrace();
         }
     }
 
@@ -166,7 +165,7 @@ public class StorageBarrel extends UnicastRemoteObject implements StorageBarrelI
 
             // Lookup the gateway interface
             gateway = (GatewayInterface) Naming.lookup("rmi://" + RMI_SERVER + ":" + RMI_PORT + "/GATEWAY");
-            gateway.addBarrel(barrel);
+            gateway.addBarrel(barrel, id);
             System.out.println("[Barrel-" + id + "]: Added to gateway.");
             
         } catch (Exception e) {

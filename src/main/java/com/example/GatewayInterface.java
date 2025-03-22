@@ -10,6 +10,6 @@ public interface GatewayInterface extends Remote{
     public String popFromQueue() throws RemoteException;
     public ArrayList<String> sendMessage(String message, int option) throws RemoteException;
     public ArrayList<StorageBarrelInterface> getBarrels(long myId) throws RemoteException;
-    public void addBarrel(StorageBarrelInterface barrel) throws RemoteException;
-    public void removeBarrel(StorageBarrelInterface barrel) throws RemoteException;
+    public void addBarrel(StorageBarrelInterface barrel, long id) throws RemoteException;
+    public void removeBarrel(long barrelId) throws RemoteException;
 }

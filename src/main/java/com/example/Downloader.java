@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.URL;
+import java.rmi.RemoteException;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -84,13 +85,26 @@ public class Downloader extends Thread{
                 JSONObject info = searchURL(url);
 
                 // Send info to all barrels
-                try {
-                    for (StorageBarrelInterface b : gateway.getBarrels(0)){
-                        b.addInfo(info.toString(), true);
+                int retries = 3; // Maximum number of attempts
+                boolean success = false;
+                
+                while (!success && retries > 0) {
+                    try {
+                        for (StorageBarrelInterface b : gateway.getBarrels(0)) {
+                            b.addInfo(info.toString(), true);
+                        }
+                        success = true; // Operation succeeded
+                    } catch (RemoteException e) {
+                        retries--;
+                        System.out.println("Error accessing Barrels. Retries left: " + retries);
+                        
+                        if (retries > 0) {
+                            Thread.sleep(1000); // Wait 1 second before retrying
+                        } else {
+                            System.out.println("Failed after multiple attempts");
+                            e.printStackTrace();
+                        }
                     }
-                } catch (Exception e) {
-                    System.out.println("Error sending info to Barrels");
-                    e.printStackTrace();
                 }
 
                 JSONArray links = info.getJSONArray("links");

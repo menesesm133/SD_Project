@@ -19,7 +19,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 //
 public class Gateway extends UnicastRemoteObject implements GatewayInterface{
     private BlockingQueue<String> urlQueue;
-    private ArrayList<StorageBarrelInterface> activeBarrels;
+    // private ArrayList<StorageBarrelInterface> activeBarrels;
+    private Map<Long, StorageBarrelInterface> activeBarrels;
     private static Map<String, Boolean> visited;
     //Gateway
     /**
@@ -31,7 +32,8 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface{
         try {
             //Create a shared queue for URLs
             urlQueue = new LinkedBlockingQueue<>();
-            activeBarrels = new ArrayList<>();
+            // activeBarrels = new ArrayList<>();
+            activeBarrels = new HashMap<Long, StorageBarrelInterface>();
             visited = new HashMap<String, Boolean>();
 
         } catch (Exception e) {System.out.println("Exception: " + e); }
@@ -139,22 +141,38 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface{
         return result;
     }
 
-    public ArrayList<StorageBarrelInterface> getBarrels(long myId) throws RemoteException{
+    public ArrayList<StorageBarrelInterface> getBarrels(long myId) throws RemoteException {
         ArrayList<StorageBarrelInterface> result = new ArrayList<>();
-		for (StorageBarrelInterface barrel : activeBarrels) {
-			if (barrel.getId() != myId) {
-				result.add(barrel);
-			}
-		}
-		return result;
+        ArrayList<Long> barrelsToRemove = new ArrayList<>();
+        
+        for (long barrelId : activeBarrels.keySet()) {
+            try {
+                if (barrelId != myId) {
+                    StorageBarrelInterface barrel = activeBarrels.get(barrelId);
+                    // Call barrel function to check if still alive
+                    barrel.getId();
+                    result.add(barrel);
+                }
+            } catch (Exception e) {
+                System.out.println("[Gateway]: Barrel-" + barrelId + " is no longer active!!");
+                barrelsToRemove.add(barrelId);
+            }
+        }
+        
+        // Now, remove inactive barrels outside the iteration
+        for (Long barrelId : barrelsToRemove) {
+            removeBarrel(barrelId);
+        }
+        
+        return result;
     }
 
-    public void addBarrel(StorageBarrelInterface barrel) throws RemoteException{
-        activeBarrels.add(barrel);
+    public void addBarrel(StorageBarrelInterface barrel, long id) throws RemoteException{
+        activeBarrels.put(id, barrel);
     }
 
-    public void removeBarrel(StorageBarrelInterface barrel) throws RemoteException{
-        activeBarrels.remove(barrel);
+    public void removeBarrel(long barrelId) throws RemoteException{
+        activeBarrels.remove(barrelId);
     }
 
 
