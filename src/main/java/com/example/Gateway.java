@@ -13,6 +13,7 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -39,6 +40,7 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface{
         } catch (Exception e) {System.out.println("Exception: " + e); }
     }
     
+    @Override
     public void addToQueue(String url) throws RemoteException {
         try {
             if (!visited.containsKey(url)) {
@@ -53,6 +55,7 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface{
         }
     }
 
+    @Override
     public String popFromQueue() throws RemoteException {
         try {
             String url = urlQueue.take();
@@ -64,6 +67,7 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface{
         }
     }
 
+    @Override
     public ArrayList<String> sendMessage(String message, int option) throws RemoteException {
         ArrayList<String> result = new ArrayList<String>();
 
@@ -111,25 +115,23 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface{
                     System.out.println("Searching URL: " + url);
 
                     try {
-                        for (StorageBarrelInterface b : this.getBarrels(0)){
-                            //result = b.SearchURL(url);
-                        }
-                    } catch (Exception e) {
+                        StorageBarrelInterface b = this.getRandomBarrel(0);
+                        result = b.searchURL(url);
+                    } catch (RemoteException e) {
                         System.out.println("Error sending info to Barrels");
-                        e.printStackTrace();
                     }
                 } catch (Exception e) {
                     System.out.println("Exception indexing: " + e);
+                    e.printStackTrace();
                 }
             case 4://Search Keyword
             try {
                 System.out.println("Searching: " + message);
 
                 try {
-                    for (StorageBarrelInterface b : this.getBarrels(0)){
-                        //result = b.SearchWord(url);
-                    }
-                } catch (Exception e) {
+                    StorageBarrelInterface b = this.getRandomBarrel(0);
+                    result = b.searchWords(message);
+                } catch (RemoteException e) {
                     System.out.println("Error sending info to Barrels");
                     e.printStackTrace();
                 }
@@ -141,6 +143,7 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface{
         return result;
     }
 
+    @Override
     public ArrayList<StorageBarrelInterface> getBarrels(long myId) throws RemoteException {
         ArrayList<StorageBarrelInterface> result = new ArrayList<>();
         ArrayList<Long> barrelsToRemove = new ArrayList<>();
@@ -167,10 +170,27 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface{
         return result;
     }
 
+    
+    public StorageBarrelInterface getRandomBarrel(long myId) throws RemoteException {
+        ArrayList<StorageBarrelInterface> availableBarrels = getBarrels(myId);
+
+        if (availableBarrels.isEmpty()) {
+            System.out.println("No active barrels available.");
+            return null;
+        }
+
+        Random rand = new Random();
+        int randomIndex = rand.nextInt(availableBarrels.size());
+
+        return availableBarrels.get(randomIndex);
+    }
+
+    @Override
     public void addBarrel(StorageBarrelInterface barrel, long id) throws RemoteException{
         activeBarrels.put(id, barrel);
     }
 
+    @Override
     public void removeBarrel(long barrelId) throws RemoteException{
         activeBarrels.remove(barrelId);
     }

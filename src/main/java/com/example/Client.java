@@ -5,12 +5,10 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.lang.reflect.Array;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
-import java.util.Scanner;
+import java.util.List;
 
 /**
  * This class is responsible for the client functionality.
@@ -34,12 +32,10 @@ public class Client {
 
                 if (token[0].trim().equals("RMI Address Gateway")) {
                     RMI_INFO = token[1].trim();
-                    System.out.println(RMI_INFO);
                 }
 
                 if (token[0].trim().equals("RMI Port")) {
                     RMI_INFO += ":" + Integer.parseInt(token[1].trim());
-                    System.out.println(RMI_INFO);
                 }
             }
         } catch (IOException e) {
@@ -93,6 +89,8 @@ public class Client {
                     System.out.println("\n1. Search\n" +
                     "2. Exit\n");
 
+                    System.out.println("Choose an option: ");
+
                     String search = reader.readLine();
 
                     if (search.equals("2")) {
@@ -101,26 +99,35 @@ public class Client {
                     }
 
                     else if (search.equals("1")) {
+                        System.out.println("\nWhat do you wish to search for?");
                         String keyword = reader.readLine();
 
                         if(keyword.toLowerCase().startsWith("http")){
                             try{
-                                System.out.println("Adding URL to queue: " + keyword);
                                 ArrayList<String> result = gateway.sendMessage(keyword, 3);
                                 int count = 0;
-                                System.out.println("Search results: ");
-
-                                for (String s : result) {
-                                    System.out.println(s);
-                                    count++;
-                                    if(count == 10){
-                                        System.out.println("1. Next page ->\n" +
-                                        "2. Exit\n");
-                                        if (reader.readLine().equals("2")) {
-                                            break;
-                                        } else if (reader.readLine().equals("1")) {
-                                            count = 0;
-                                        }
+                                String read = "";
+                            
+                                while(!read.equals("3")){
+                                    System.out.println("\nSearch results(Page "+ (count+10)/10 +"): \n");
+                                    int endIndex = Math.min(result.size(), count + 10);
+                                    List<String> subList = result.subList(count, endIndex);
+                                    for (String s : subList){
+                                        System.out.println(s);
+                                    }
+                                    System.out.println();
+                                    if(result.size() > count+10){
+                                        System.out.println("1. Next page ->");
+                                    }
+                                    if(count >= 10) {
+                                        System.out.println("2. <- Previous page");
+                                    }
+                                    System.out.println("3. Exit search");
+                                    read = reader.readLine();
+                                    if (read.equals("1") && result.size() > count+10) {
+                                        count += 10;
+                                    } else if (read.equals("2") && count >= 10) {
+                                        count -= 10;
                                     }
                                 }
                             } catch (Exception e) {
@@ -129,19 +136,28 @@ public class Client {
                         } else {
                             ArrayList<String> result = gateway.sendMessage(keyword, 4);
                             int count = 0;
-                            System.out.println("Search results: ");
-
-                            for (String s : result) {
-                                System.out.println(s);
-                                count++;
-                                if(count == 10){
-                                    System.out.println("1. Next page ->\n" +
-                                    "2. Exit\n");
-                                    if (reader.readLine().equals("2")) {
-                                        break;
-                                    } else if (reader.readLine().equals("1")) {
-                                        count = 0;
-                                    }
+                            String read = "";
+                            
+                            while(!read.equals("3")){
+                                System.out.println("\nSearch results(Page "+ (count+10)/10 +"): \n");
+                                int endIndex = Math.min(result.size(), count + 10);
+                                List<String> subList = result.subList(count, endIndex);
+                                for (String s : subList){
+                                    System.out.println(s);
+                                }
+                                System.out.println();
+                                if(result.size() > count+10){
+                                    System.out.println("1. Next page ->");
+                                }
+                                if(count >= 10) {
+                                    System.out.println("2. <- Previous page");
+                                }
+                                System.out.println("3. Exit search");
+                                read = reader.readLine();
+                                if (read.equals("1") && result.size() > count+10) {
+                                    count += 10;
+                                } else if (read.equals("2") && count >= 10) {
+                                    count -= 10;
                                 }
                             }
                         }

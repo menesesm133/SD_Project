@@ -10,6 +10,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
+import java.util.Collections;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -21,7 +22,9 @@ public class StorageBarrel extends UnicastRemoteObject implements StorageBarrelI
 
     public StorageBarrel() throws RemoteException {
         super();
-        File file = new File("Storage/Barrel-" + id + ".json");
+        // Create folder if it doesn't already exist:
+        new File("storage").mkdirs();
+        File file = new File("storage/Barrel-" + id + ".json");
         try {
             if (file.createNewFile()) {
                 System.out.println("Barrel file created: " + file.getName());
@@ -39,9 +42,77 @@ public class StorageBarrel extends UnicastRemoteObject implements StorageBarrelI
     }
 
     @Override
+    public ArrayList<String> searchWords(String query) throws RemoteException {
+        ArrayList<String> results = new ArrayList<>();
+        
+        try {
+            ArrayList<JSONObject> data = getInfo();            
+            String[] queryTerms = query.toLowerCase().split("\\s+");            
+            ArrayList<JSONObject> matchingPages = new ArrayList<>();
+            
+            // Search through each JSON object
+            for (JSONObject page : data) {
+                boolean matches = false;
+                
+                String title = page.optString("title", "").toLowerCase();
+                String text = page.optString("text", "").toLowerCase();
+                for (String term : queryTerms) {
+                    if (title.contains(term) || text.contains(term)) {
+                        matches = true;
+                        break;
+                    }
+                }
+                if (matches) {
+                    matchingPages.add(page);
+                }
+            }
+            
+            Collections.sort(matchingPages, (obj1, obj2) -> {
+                int size1 = obj1.optJSONArray("linksTo") != null ? obj1.getJSONArray("linksTo").length() : 0;
+                int size2 = obj2.optJSONArray("linksTo") != null ? obj2.getJSONArray("linksTo").length() : 0;
+                return Integer.compare(size2, size1); // Descending order
+            });
+            
+            for (JSONObject page : matchingPages) {
+                results.add(page.getString("url"));
+            }
+            
+        } catch (Exception e) {
+            System.out.println("[Barrel-" + id + "] Error searching for words: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        return results;
+    }
+
+    @Override
+    public ArrayList<String> searchURL(String url) throws RemoteException {
+        ArrayList<String> results = new ArrayList<>();
+        
+        try {
+            ArrayList<JSONObject> data = getInfo();
+            
+            // Search through each JSON object
+            for (JSONObject page : data) {                
+                if(url.equals(page.getString("url"))){
+                    JSONArray linksTo = page.getJSONArray("linksTo");
+                    for (int i = 0; i < linksTo.length(); i++) {
+                        results.add(linksTo.getString(i));
+                    }
+                }
+            }      
+        } catch (Exception e) {
+            System.out.println("[Barrel-" + id + "] Error searching for URL: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        return results;
+    }
+
+    @Override
     public ArrayList<JSONObject> getInfo() throws RemoteException {
         ArrayList<JSONObject> data = new ArrayList<>();
-        File file = new File("Storage/Barrel-" + id + ".json");
+        File file = new File("storage/Barrel-" + id + ".json");
 
         // Check if the file exists and is not empty
         if (!file.exists() || file.length() == 0) {
@@ -104,14 +175,12 @@ public class StorageBarrel extends UnicastRemoteObject implements StorageBarrelI
             if (!isDuplicate) {
                 data.add(json);
 
-                try (FileWriter fileWriter = new FileWriter("Storage/Barrel-" + id + ".json")) {
+                try (FileWriter fileWriter = new FileWriter("storage/Barrel-" + id + ".json")) {
                     // Write the data to file as a JSON array
                     JSONArray jsonArray = new JSONArray(data);
                     fileWriter.write(jsonArray.toString(4)); // Pretty print with indent level 4
                 }
-            } else {
-                System.out.println("[Barrel-" + id + "]: Duplicate entry detected, not adding: " + info);
-            }
+            } 
 
             // Notify other barrels if necessary
             if (downloader) {
