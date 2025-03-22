@@ -20,17 +20,17 @@ public class Client {
         super();
     }
 
-    private void menu(){
-        //Read information regarding the RMI from "properties.txt"
+    private void menu() {
+        // Read information regarding the RMI from "properties.txt"
         String path = "properties.txt";
         System.out.println("Reading properties from: " + path);
         String RMI_ADDRESS = "";
         int RMI_PORT = 0;
 
-        try(BufferedReader br = new BufferedReader(new FileReader(new File(path)))){
+        try (BufferedReader br = new BufferedReader(new FileReader(new File(path)))) {
             String line;
 
-            while((line = br.readLine()) != null) {
+            while ((line = br.readLine()) != null) {
                 String[] token = line.split(":");
 
                 if (token[0].trim().equals("RMI Address Gateway")) {
@@ -48,6 +48,7 @@ public class Client {
         GatewayInterface gateway = null;
 
         try {
+            System.setProperty("java.rmi.server.hostname", RMI_ADDRESS);
             Registry reg = LocateRegistry.getRegistry(RMI_ADDRESS, RMI_PORT);
             System.out.println("RMI Registry attatched at port " + RMI_PORT);
             gateway = (GatewayInterface) reg.lookup("GATEWAY");
@@ -58,23 +59,23 @@ public class Client {
         }
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8))) {
-            while(true){
+            while (true) {
                 System.out.println(
-                "1. Search\n" + //Asks for URL and goes to a menu with the search results
-                "2. Index URL\n" + //Asks for URL and indexes it
-                "3. Administrator Page\n" + //The admin page gets the status of the system
-                "4. Exit\n"); //Ends the client
+                        "1. Search\n" + // Asks for URL and goes to a menu with the search results
+                                "2. Index URL\n" + // Asks for URL and indexes it
+                                "3. Administrator Page\n" + // The admin page gets the status of the system
+                                "4. Exit\n"); // Ends the client
 
                 System.out.println("Choose an option: ");
 
                 String option = reader.readLine();
 
-                if(option.equals("4")){
+                if (option.equals("4")) {
                     System.out.println("Exiting...");
                     break;
                 }
 
-                else if(option.equals("3")){
+                else if (option.equals("3")) {
                     ArrayList<String> result = gateway.sendMessage("Admin", 1);
                     System.out.println("System status: ");
                     for (String s : result) {
@@ -82,19 +83,19 @@ public class Client {
                     }
                 }
 
-                else if(option.equals("2")) {
+                else if (option.equals("2")) {
                     System.out.println("URL to index: ");
                     String url = reader.readLine();
-                    try{
+                    try {
                         ArrayList<String> result = gateway.sendMessage(url, 2);
                     } catch (Exception e) {
                         System.out.println("Exception indexing: " + e);
                     }
                 }
-                
-                else if(option.equals("1")){
+
+                else if (option.equals("1")) {
                     System.out.println("\n1. Search\n" +
-                    "2. Exit\n");
+                            "2. Exit\n");
 
                     System.out.println("Choose an option: ");
 
@@ -109,29 +110,29 @@ public class Client {
                         System.out.println("\nWhat do you wish to search for?");
                         String keyword = reader.readLine();
 
-                        if(keyword.toLowerCase().startsWith("http")){
-                            try{
+                        if (keyword.toLowerCase().startsWith("http")) {
+                            try {
                                 ArrayList<String> result = gateway.sendMessage(keyword, 3);
                                 int count = 0;
                                 String read = "";
-                            
-                                while(!read.equals("3")){
-                                    System.out.println("\nSearch results(Page "+ (count+10)/10 +"): \n");
+
+                                while (!read.equals("3")) {
+                                    System.out.println("\nSearch results(Page " + (count + 10) / 10 + "): \n");
                                     int endIndex = Math.min(result.size(), count + 10);
                                     List<String> subList = result.subList(count, endIndex);
-                                    for (String s : subList){
+                                    for (String s : subList) {
                                         System.out.println(s);
                                     }
                                     System.out.println();
-                                    if(result.size() > count+10){
+                                    if (result.size() > count + 10) {
                                         System.out.println("1. Next page ->");
                                     }
-                                    if(count >= 10) {
+                                    if (count >= 10) {
                                         System.out.println("2. <- Previous page");
                                     }
                                     System.out.println("3. Exit search");
                                     read = reader.readLine();
-                                    if (read.equals("1") && result.size() > count+10) {
+                                    if (read.equals("1") && result.size() > count + 10) {
                                         count += 10;
                                     } else if (read.equals("2") && count >= 10) {
                                         count -= 10;
@@ -144,24 +145,24 @@ public class Client {
                             ArrayList<String> result = gateway.sendMessage(keyword, 4);
                             int count = 0;
                             String read = "";
-                            
-                            while(!read.equals("3")){
-                                System.out.println("\nSearch results(Page "+ (count+10)/10 +"): \n");
+
+                            while (!read.equals("3")) {
+                                System.out.println("\nSearch results(Page " + (count + 10) / 10 + "): \n");
                                 int endIndex = Math.min(result.size(), count + 10);
                                 List<String> subList = result.subList(count, endIndex);
-                                for (String s : subList){
+                                for (String s : subList) {
                                     System.out.println(s);
                                 }
                                 System.out.println();
-                                if(result.size() > count+10){
+                                if (result.size() > count + 10) {
                                     System.out.println("1. Next page ->");
                                 }
-                                if(count >= 10) {
+                                if (count >= 10) {
                                     System.out.println("2. <- Previous page");
                                 }
                                 System.out.println("3. Exit search");
                                 read = reader.readLine();
-                                if (read.equals("1") && result.size() > count+10) {
+                                if (read.equals("1") && result.size() > count + 10) {
                                     count += 10;
                                 } else if (read.equals("2") && count >= 10) {
                                     count -= 10;
@@ -178,6 +179,7 @@ public class Client {
 
     /**
      * Main method of the client.
+     * 
      * @param args
      */
     public static void main(String[] args) {
