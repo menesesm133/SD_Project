@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,7 +24,8 @@ public class Client {
         //Read information regarding the RMI from "properties.txt"
         String path = "properties.txt";
         System.out.println("Reading properties from: " + path);
-        String RMI_INFO = "";
+        String RMI_ADDRESS = "";
+        int RMI_PORT = 0;
 
         try(BufferedReader br = new BufferedReader(new FileReader(new File(path)))){
             String line;
@@ -31,11 +34,11 @@ public class Client {
                 String[] token = line.split(":");
 
                 if (token[0].trim().equals("RMI Address Gateway")) {
-                    RMI_INFO = token[1].trim();
+                    RMI_ADDRESS = token[1].trim();
                 }
 
                 if (token[0].trim().equals("RMI Port")) {
-                    RMI_INFO += ":" + Integer.parseInt(token[1].trim());
+                    RMI_PORT = Integer.parseInt(token[1].trim());
                 }
             }
         } catch (IOException e) {
@@ -44,12 +47,14 @@ public class Client {
 
         GatewayInterface gateway = null;
 
-        System.out.println("Gateway 1: "+ gateway );
-
         try {
-            gateway = (GatewayInterface) java.rmi.Naming.lookup("rmi://" + RMI_INFO + "/GATEWAY");
+            Registry reg = LocateRegistry.getRegistry(RMI_ADDRESS, RMI_PORT);
+            System.out.println("RMI Registry attatched at port " + RMI_PORT);
+            gateway = (GatewayInterface) reg.lookup("GATEWAY");
         } catch (Exception e) {
-            System.out.println("Exception: " + e);
+            System.out.println("Error connecring to gateway!");
+            e.printStackTrace();
+            return;
         }
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8))) {

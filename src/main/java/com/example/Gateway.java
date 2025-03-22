@@ -231,13 +231,8 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface{
 
             // Start the RMI registry if not already running
             try {
-                if(RMI_ADDRESS.equals("localhost")){
-                    LocateRegistry.createRegistry(RMI_PORT);
-                    System.out.println("RMI Registry created at port " + RMI_PORT);
-                }else{
-                    LocateRegistry.getRegistry(RMI_ADDRESS, RMI_PORT);
-                    System.out.println("RMI Registry attatched at port " + RMI_PORT);
-                }
+                LocateRegistry.createRegistry(RMI_PORT);
+                System.out.println("RMI Registry created at port " + RMI_PORT);
             } catch (RemoteException e) {
                 System.out.println("RMI Registry already running.");
             }

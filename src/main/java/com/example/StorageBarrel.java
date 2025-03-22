@@ -219,19 +219,14 @@ public class StorageBarrel extends UnicastRemoteObject implements StorageBarrelI
             barrel = new StorageBarrel();
 
             try {
-                if(RMI_ADDRESS.equals("localhost")){
-                    LocateRegistry.createRegistry(RMI_PORT);
-                    System.out.println("RMI Registry created at port " + RMI_PORT);
-                }else{
-                    LocateRegistry.getRegistry(RMI_ADDRESS, RMI_PORT);
-                    System.out.println("RMI Registry attatched at port " + RMI_PORT);
-                }
+                LocateRegistry.createRegistry(RMI_PORT);
+                System.out.println("RMI Registry created at port " + RMI_PORT);
             } catch (RemoteException e) {
                 System.out.println("RMI Registry already running.");
             }
 
             try {
-                Naming.rebind("rmi://" + RMI_ADDRESS + ":" + RMI_PORT + "/BARREL-" + id, barrel);
+                Naming.rebind("rmi://localhost:" + RMI_PORT + "/BARREL-" + id, barrel);
                 System.out.println("Barrel bound to RMI at " + RMI_ADDRESS + ":" + RMI_PORT);
             } catch (RemoteException e) {
                 System.out.println("Failed to bind Barrel: " + e.getMessage());
