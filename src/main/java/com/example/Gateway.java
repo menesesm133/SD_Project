@@ -24,6 +24,8 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
     // private ArrayList<StorageBarrelInterface> activeBarrels;
     private Map<Long, StorageBarrelInterface> activeBarrels;
     private static Map<String, Boolean> visited;
+    private Map<Long, Float> responseTime;
+    private Map<String, Integer> topTen;
 
     // Gateway
     /**
@@ -39,6 +41,8 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
             // activeBarrels = new ArrayList<>();
             activeBarrels = new HashMap<Long, StorageBarrelInterface>();
             visited = new HashMap<String, Boolean>();
+            responseTime = new HashMap<Long, Float>();
+            topTen = new HashMap<String, Integer>();
 
         } catch (Exception e) {
             System.out.println("Exception: " + e);
@@ -78,6 +82,17 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
 
         switch (option) {
             case 1:// Admin Page
+                result.add("---- Admin Page ----");
+                result.add("Active Barrels: " + activeBarrels.size());
+                result.add("URL Queue Size: " + urlQueue.size());
+                result.add("Response Time: ");
+                for (Long barrelId : responseTime.keySet()) {
+                    result.add("Barrel-" + barrelId + ": " + responseTime.get(barrelId) + " ms");
+                }
+                result.add("\nTop 10 searched words: ");
+                for (String key : topTen.keySet()) {
+                    result.add(key + " - " + topTen.get(key));
+                }
                 break;
 
             case 2:// Index URL
@@ -106,6 +121,7 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
                 } catch (Exception e) {
                     System.out.println("Exception indexing: " + e);
                 }
+                break;
             case 3:// Search URL
                 try {
                     String url = URLDecoder.decode(message, StandardCharsets.UTF_8);
@@ -129,6 +145,7 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
                     System.out.println("Exception indexing: " + e);
                     e.printStackTrace();
                 }
+                break;
             case 4:// Search Keyword
                 try {
                     System.out.println("Searching: " + message);
@@ -136,6 +153,7 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
                     try {
                         StorageBarrelInterface b = this.getRandomBarrel(0);
                         result = b.searchWords(message);
+                        topTen.put(message.toLowerCase(), topTen.getOrDefault(message, 0) + 1);
                     } catch (RemoteException e) {
                         System.out.println("Error sending info to Barrels");
                         e.printStackTrace();
@@ -143,6 +161,7 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
                 } catch (Exception e) {
                     System.out.println("Exception indexing: " + e);
                 }
+                break;
         }
 
         return result;
@@ -157,8 +176,11 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
             try {
                 if (barrelId != myId) {
                     StorageBarrelInterface barrel = activeBarrels.get(barrelId);
-                    // Call barrel function to check if still alive
+                    // Call barrel function to check if still alive and check response time
+                    float begin = System.nanoTime();
                     barrel.getId();
+                    float time = (System.nanoTime() - begin) / 10000; // Em decimas de segundo
+                    responseTime.put(barrelId, time);
                     result.add(barrel);
                 }
             } catch (Exception e) {
@@ -170,6 +192,7 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         // Now, remove inactive barrels outside the iteration
         for (Long barrelId : barrelsToRemove) {
             removeBarrel(barrelId);
+            responseTime.remove(barrelId);
         }
 
         return result;

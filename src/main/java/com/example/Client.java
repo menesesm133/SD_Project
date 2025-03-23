@@ -60,11 +60,12 @@ public class Client {
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8))) {
             while (true) {
-                System.out.println(
-                        "1. Search\n" + // Asks for URL and goes to a menu with the search results
-                                "2. Index URL\n" + // Asks for URL and indexes it
-                                "3. Administrator Page\n" + // The admin page gets the status of the system
-                                "4. Exit\n"); // Ends the client
+                System.out.println("\n\n\n\n" +
+                "Menu:\n" +
+                "1. Search\n" + // Asks for URL and goes to a menu with the search results
+                "2. Index URL\n" + // Asks for URL and indexes it
+                "3. Administrator Page\n" + // The admin page gets the status of the system
+                "4. Exit\n"); // Ends the client
 
                 System.out.println("Choose an option: ");
 

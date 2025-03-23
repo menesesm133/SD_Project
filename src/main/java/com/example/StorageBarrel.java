@@ -140,6 +140,35 @@ public class StorageBarrel extends UnicastRemoteObject implements StorageBarrelI
     }
 
     @Override
+    public ArrayList<String> getInfoString() throws RemoteException {
+        ArrayList<String> data = new ArrayList<>();
+        File file = new File("storage/Barrel-" + id + ".json");
+
+        // Check if the file exists and is not empty
+        if (!file.exists() || file.length() == 0) {
+            return data; // Return empty list if file is not found or is empty
+        }
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            StringBuilder jsonContent = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                jsonContent.append(line);
+            }
+
+            // Parse JSON content into a JSONArray
+            JSONArray jsonArray = new JSONArray(jsonContent.toString());
+            for (int i = 0; i < jsonArray.length(); i++) {
+                data.add(jsonArray.getJSONObject(i).toString());
+            }
+        } catch (Exception e) {
+            System.out.println("[Barrel-" + id + "]: Error reading data file!");
+            e.printStackTrace();
+        }
+        return data;
+    }
+
+    @Override
     public void addInfo(String info, boolean downloader) throws RemoteException {
         try {
             ArrayList<JSONObject> data = getInfo();
@@ -239,6 +268,26 @@ public class StorageBarrel extends UnicastRemoteObject implements StorageBarrelI
 
             // Lookup the gateway interface
             gateway = (GatewayInterface) reg.lookup("rmi://" + RMI_ADDRESS + ":" + RMI_PORT + "/GATEWAY");
+
+            // Get info from a random barrel
+            StorageBarrelInterface randomBarrel = gateway.getRandomBarrel(id);
+
+            // Check if there is at least one Barrel available
+            if (randomBarrel != null) {
+                ArrayList<String> data = randomBarrel.getInfoString();
+                ArrayList<JSONObject> dataJson = new ArrayList<>();
+
+                for (String s : data) {
+                    dataJson.add(new JSONObject(s));
+                }
+
+                try (FileWriter fileWriter = new FileWriter("storage/Barrel-" + id + ".json")) {
+                    // Write the data to file as a JSON array
+                    JSONArray jsonArray = new JSONArray(dataJson);
+                    fileWriter.write(jsonArray.toString(4)); // Pretty print with indent level 4
+                }
+            }
+
             gateway.addBarrel(barrel, id);
             System.out.println("[Barrel-" + id + "]: Added to gateway.");
 
