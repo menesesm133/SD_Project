@@ -17,35 +17,75 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.CopyOnWriteArrayList;
 
-//
 public class Gateway extends UnicastRemoteObject implements GatewayInterface {
     private BlockingQueue<String> urlQueue;
-    // private ArrayList<StorageBarrelInterface> activeBarrels;
     private Map<Long, StorageBarrelInterface> activeBarrels;
     private static Map<String, Boolean> visited;
     private Map<Long, Float> responseTime;
     private Map<String, Integer> topTen;
 
-    // Gateway
-    /**
-     * Constructs a new Gateway instance.
-     * Initiates the RMI for the Queue and the Barrels.
-     * 
-     * @throws RemoteException if an RMI error occurs.
-     */
+    // List to store admin callbacks
+    private CopyOnWriteArrayList<AdminCallback> adminCallbacks;
+
     public Gateway() throws RemoteException {
         try {
-            // Create a shared queue for URLs
             urlQueue = new LinkedBlockingQueue<>();
-            // activeBarrels = new ArrayList<>();
             activeBarrels = new HashMap<Long, StorageBarrelInterface>();
             visited = new HashMap<String, Boolean>();
             responseTime = new HashMap<Long, Float>();
             topTen = new HashMap<String, Integer>();
+            adminCallbacks = new CopyOnWriteArrayList<>();
 
         } catch (Exception e) {
             System.out.println("Exception: " + e);
+        }
+    }
+
+    @Override
+    public void registerAdminCallback(AdminCallback callback) throws RemoteException {
+        if (!adminCallbacks.contains(callback)) {
+            adminCallbacks.add(callback);
+            System.out.println("[Server]: Admin callback registered");
+            // Send initial data
+            notifyAdminCallbacks();
+        }
+    }
+
+    @Override
+    public void unregisterAdminCallback(AdminCallback callback) throws RemoteException {
+        adminCallbacks.remove(callback);
+        System.out.println("[Server]: Admin callback unregistered");
+    }
+
+    private void notifyAdminCallbacks() {
+        if (adminCallbacks.isEmpty()) {
+            return;
+        }
+
+        // Generate admin data
+        ArrayList<String> adminData = new ArrayList<>();
+        adminData.add("---- Admin Page ----");
+        adminData.add("Active Barrels: " + activeBarrels.size());
+        adminData.add("URL Queue Size: " + urlQueue.size());
+        adminData.add("Response Time: ");
+        for (Long barrelId : responseTime.keySet()) {
+            adminData.add("Barrel-" + barrelId + ": " + responseTime.get(barrelId) + " ms");
+        }
+        adminData.add("\nTop 10 searched words: ");
+        for (String key : topTen.keySet()) {
+            adminData.add(key + " - " + topTen.get(key));
+        }
+
+        // Notify all registered clients
+        for (AdminCallback callback : adminCallbacks) {
+            try {
+                callback.updateAdminData(adminData);
+            } catch (RemoteException e) {
+                System.out.println("[Server]: Failed to notify admin client, removing callback");
+                adminCallbacks.remove(callback);
+            }
         }
     }
 
@@ -56,6 +96,7 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
                 urlQueue.put(url);
                 visited.put(url, true);
                 System.out.println("[Server]: Added to queue: " + url);
+                notifyAdminCallbacks(); // Notify after adding to queue
             } else {
                 System.out.println("Url: \"" + url + "\" already added!");
             }
@@ -69,6 +110,7 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         try {
             String url = urlQueue.take();
             System.out.println("[Server]: Popped from queue: " + url);
+            notifyAdminCallbacks(); // Notify after popping from queue
             return url;
         } catch (InterruptedException e) {
             System.out.println("[Server]: Error popping from queue.");
@@ -138,6 +180,7 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
                     try {
                         StorageBarrelInterface b = this.getRandomBarrel(0);
                         result = b.searchURL(url);
+                        notifyAdminCallbacks(); // Notify after search
                     } catch (RemoteException e) {
                         System.out.println("Error sending info to Barrels");
                     }
@@ -154,6 +197,7 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
                         StorageBarrelInterface b = this.getRandomBarrel(0);
                         result = b.searchWords(message);
                         topTen.put(message.toLowerCase(), topTen.getOrDefault(message, 0) + 1);
+                        notifyAdminCallbacks(); // Notify after search
                     } catch (RemoteException e) {
                         System.out.println("Error sending info to Barrels");
                         e.printStackTrace();
@@ -195,9 +239,14 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
             responseTime.remove(barrelId);
         }
 
+        if (!barrelsToRemove.isEmpty()) {
+            notifyAdminCallbacks(); // Notify if barrels were removed
+        }
+
         return result;
     }
 
+    @Override
     public StorageBarrelInterface getRandomBarrel(long myId) throws RemoteException {
         ArrayList<StorageBarrelInterface> availableBarrels = getBarrels(myId);
 
@@ -215,11 +264,13 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
     @Override
     public void addBarrel(StorageBarrelInterface barrel, long id) throws RemoteException {
         activeBarrels.put(id, barrel);
+        notifyAdminCallbacks(); // Notify after adding barrel
     }
 
     @Override
     public void removeBarrel(long barrelId) throws RemoteException {
         activeBarrels.remove(barrelId);
+        notifyAdminCallbacks(); // Notify after removing barrel
     }
 
     public static void main(String[] args) {

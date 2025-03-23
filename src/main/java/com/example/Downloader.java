@@ -131,17 +131,18 @@ public class Downloader extends Thread {
                 }
             }
 
-            JSONArray links = info.getJSONArray("links");
-            for (int i = 0; i < links.length(); i++) {
-                String link = links.getString(i);
-                try {
-                    gateway.sendMessage((String) link, 2);
-                } catch (Exception e) {
-                    System.out.println("Error sending message: " + e.getMessage());
-                    // Continue processing other links
+            if (info != null && info.has("links")) {
+                JSONArray links = info.getJSONArray("links");
+                for (int i = 0; i < links.length(); i++) {
+                    String link = links.getString(i);
+                    try {
+                        gateway.sendMessage((String) link, 2);
+                    } catch (Exception e) {
+                        System.out.println("Error sending message: " + e.getMessage());
+                        // Continue processing other links
+                    }
                 }
             }
-
         }
     }
 
@@ -157,12 +158,21 @@ public class Downloader extends Thread {
         JSONObject json = new JSONObject();
 
         // Get the url information(title, description, associated urls)
-        try {
-            // Url
-            json.put("url", url);
+        // Url
+        json.put("url", url);
 
+        Document doc = null;
+
+        try {
+            doc = Jsoup.connect(url).get();
+        } catch (IOException e) {
+            System.out.println("Error connecting to: " + url);
+            //e.printStackTrace();
+            json.put("url", "Not available");
+        }
+
+        if (doc != null) {
             // Title
-            Document doc = Jsoup.connect(url).get();
             json.put("title", doc.title());
 
             // Description
@@ -203,10 +213,6 @@ public class Downloader extends Thread {
 
             json.put("links", linksArray);
             json.put("linksTo", new JSONArray());
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            json.put("url", "Not available");
         }
 
         return json;

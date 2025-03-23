@@ -9,15 +9,52 @@ import java.nio.charset.StandardCharsets;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * This class is responsible for the client functionality.
  */
-public class Client {
+public class Client extends UnicastRemoteObject implements AdminCallback {
+    private ArrayList<String> currentAdminData = new ArrayList<>();
+    private AtomicBoolean adminPageActive = new AtomicBoolean(false);
+    private Thread adminUpdateThread;
+
     public Client() throws RemoteException {
         super();
+    }
+
+    @Override
+    public void updateAdminData(ArrayList<String> adminData) throws RemoteException {
+        this.currentAdminData = adminData;
+        if (adminPageActive.get()) {
+            clearConsole();
+            System.out.println("Admin Page (Auto-Refresh):");
+            System.out.println("------------------------------");
+            for (String line : adminData) {
+                System.out.println(line);
+            }
+            System.out.println("\nPress Enter to return to main menu...");
+        }
+    }
+
+    private void clearConsole() {
+        try {
+            String operatingSystem = System.getProperty("os.name");
+            if (operatingSystem.contains("Windows")) {
+                new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+            } else {
+                System.out.print("\033[H\033[2J");
+                System.out.flush();
+            }
+        } catch (Exception e) {
+            // Fallback if clearing doesn't work
+            for (int i = 0; i < 50; i++) {
+                System.out.println();
+            }
+        }
     }
 
     private void menu() {
@@ -50,10 +87,14 @@ public class Client {
         try {
             System.setProperty("java.rmi.server.hostname", RMI_ADDRESS);
             Registry reg = LocateRegistry.getRegistry(RMI_ADDRESS, RMI_PORT);
-            System.out.println("RMI Registry attatched at port " + RMI_PORT);
+            System.out.println("RMI Registry attached at port " + RMI_PORT);
             gateway = (GatewayInterface) reg.lookup("rmi://" + RMI_ADDRESS + ":" + RMI_PORT + "/GATEWAY");
+
+            // Register for admin updates
+            gateway.registerAdminCallback(this);
+            System.out.println("Registered for admin updates");
         } catch (Exception e) {
-            System.out.println("Error connecring to gateway!");
+            System.out.println("Error connecting to gateway!");
             e.printStackTrace();
             return;
         }
@@ -61,26 +102,42 @@ public class Client {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8))) {
             while (true) {
                 System.out.println("\n\n\n\n" +
-                "Menu:\n" +
-                "1. Search\n" + // Asks for URL and goes to a menu with the search results
-                "2. Index URL\n" + // Asks for URL and indexes it
-                "3. Administrator Page\n" + // The admin page gets the status of the system
-                "4. Exit\n"); // Ends the client
+                        "Menu:\n" +
+                        "1. Search\n" +
+                        "2. Index URL\n" +
+                        "3. Administrator Page\n" +
+                        "4. Exit\n");
 
                 System.out.println("Choose an option: ");
 
                 String option = reader.readLine();
 
                 if (option.equals("4")) {
+                    try {
+                        gateway.unregisterAdminCallback(this);
+                        System.out.println("Unregistered admin callback");
+                    } catch (Exception e) {
+                        System.out.println("Error unregistering callback: " + e.getMessage());
+                    }
                     System.out.println("Exiting...");
                     break;
                 }
 
                 else if (option.equals("3")) {
-                    ArrayList<String> result = gateway.sendMessage("Admin", 1);
-                    System.out.println("System status: ");
-                    for (String s : result) {
-                        System.out.println(s);
+                    try {
+                        // Set flag to show we're viewing admin page
+                        adminPageActive.set(true);
+
+                        // Get initial data
+                        ArrayList<String> result = gateway.sendMessage("Admin", 1);
+                        updateAdminData(result);
+
+                        // Wait for user to press Enter to exit admin page
+                        reader.readLine();
+                        adminPageActive.set(false);
+                    } catch (Exception e) {
+                        System.out.println("Error in admin page: " + e.getMessage());
+                        adminPageActive.set(false);
                     }
                 }
 
@@ -89,6 +146,7 @@ public class Client {
                     String url = reader.readLine();
                     try {
                         ArrayList<String> result = gateway.sendMessage(url, 2);
+                        System.out.println(result.get(0));
                     } catch (Exception e) {
                         System.out.println("Exception indexing: " + e);
                     }
