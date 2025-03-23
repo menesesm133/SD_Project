@@ -1,1 +1,0 @@
-typeSearchIndex = [{"p":"com.example","l":"AdminCallback"},{"l":"All Classes and Interfaces","u":"allclasses-index.html"},{"p":"com.example","l":"Client"},{"p":"com.example","l":"Downloader"},{"p":"com.example","l":"Gateway"},{"p":"com.example","l":"GatewayInterface"},{"p":"com.example","l":"StorageBarrel"},{"p":"com.example","l":"StorageBarrelInterface"}];updateSearchResults();
