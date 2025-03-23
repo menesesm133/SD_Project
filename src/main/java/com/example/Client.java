@@ -18,8 +18,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * This class is responsible for the client side of the project.
  */
 public class Client extends UnicastRemoteObject implements AdminCallback {
+    @SuppressWarnings("unused")
     private ArrayList<String> currentAdminData = new ArrayList<>();
     private AtomicBoolean adminPageActive = new AtomicBoolean(false);
+    @SuppressWarnings("unused")
     private Thread adminUpdateThread;
 
     public Client() throws RemoteException {
