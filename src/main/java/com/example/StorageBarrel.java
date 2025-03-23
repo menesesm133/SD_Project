@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,23 +38,23 @@ public class StorageBarrel extends UnicastRemoteObject implements StorageBarrelI
     }
 
     @Override
-    public long getId() throws RemoteException{
+    public long getId() throws RemoteException {
         return id;
     }
 
     @Override
     public ArrayList<String> searchWords(String query) throws RemoteException {
         ArrayList<String> results = new ArrayList<>();
-        
+
         try {
-            ArrayList<JSONObject> data = getInfo();            
-            String[] queryTerms = query.toLowerCase().split("\\s+");            
+            ArrayList<JSONObject> data = getInfo();
+            String[] queryTerms = query.toLowerCase().split("\\s+");
             ArrayList<JSONObject> matchingPages = new ArrayList<>();
-            
+
             // Search through each JSON object
             for (JSONObject page : data) {
                 boolean matches = false;
-                
+
                 String title = page.optString("title", "").toLowerCase();
                 String text = page.optString("text", "").toLowerCase();
                 for (String term : queryTerms) {
@@ -66,46 +67,46 @@ public class StorageBarrel extends UnicastRemoteObject implements StorageBarrelI
                     matchingPages.add(page);
                 }
             }
-            
+
             Collections.sort(matchingPages, (obj1, obj2) -> {
                 int size1 = obj1.optJSONArray("linksTo") != null ? obj1.getJSONArray("linksTo").length() : 0;
                 int size2 = obj2.optJSONArray("linksTo") != null ? obj2.getJSONArray("linksTo").length() : 0;
                 return Integer.compare(size2, size1); // Descending order
             });
-            
+
             for (JSONObject page : matchingPages) {
                 results.add(page.getString("url"));
             }
-            
+
         } catch (Exception e) {
             System.out.println("[Barrel-" + id + "] Error searching for words: " + e.getMessage());
             e.printStackTrace();
         }
-        
+
         return results;
     }
 
     @Override
     public ArrayList<String> searchURL(String url) throws RemoteException {
         ArrayList<String> results = new ArrayList<>();
-        
+
         try {
             ArrayList<JSONObject> data = getInfo();
-            
+
             // Search through each JSON object
-            for (JSONObject page : data) {                
-                if(url.equals(page.getString("url"))){
+            for (JSONObject page : data) {
+                if (url.equals(page.getString("url"))) {
                     JSONArray linksTo = page.getJSONArray("linksTo");
                     for (int i = 0; i < linksTo.length(); i++) {
                         results.add(linksTo.getString(i));
                     }
                 }
-            }      
+            }
         } catch (Exception e) {
             System.out.println("[Barrel-" + id + "] Error searching for URL: " + e.getMessage());
             e.printStackTrace();
         }
-        
+
         return results;
     }
 
@@ -143,8 +144,9 @@ public class StorageBarrel extends UnicastRemoteObject implements StorageBarrelI
         try {
             ArrayList<JSONObject> data = getInfo();
             JSONObject json = new JSONObject(info);
-            
-            // Custom check for duplicate JSONObjects by comparing their string representation
+
+            // Custom check for duplicate JSONObjects by comparing their string
+            // representation
             boolean isDuplicate = false;
             for (JSONObject existingJson : data) {
                 // Check if duplicate
@@ -154,10 +156,11 @@ public class StorageBarrel extends UnicastRemoteObject implements StorageBarrelI
 
                 String urlAdd = json.getString("url");
                 String urlLoop = existingJson.getString("url");
-                // Se url adicionado está em [links] de cada um deles: se sim, adicionar url[i] -> linksTo
+                // Se url adicionado está em [links] de cada um deles: se sim, adicionar url[i]
+                // -> linksTo
                 JSONArray links = existingJson.getJSONArray("links");
                 for (int i = 0; i < links.length(); i++) {
-                    if (links.getString(i).equals(urlAdd)){
+                    if (links.getString(i).equals(urlAdd)) {
                         json.append("linksTo", urlLoop);
                         break;
                     }
@@ -165,13 +168,13 @@ public class StorageBarrel extends UnicastRemoteObject implements StorageBarrelI
                 // Se url adicionado possui url[i] em links, url[i][LinksTo] -> url
                 links = json.getJSONArray("links");
                 for (int i = 0; i < links.length(); i++) {
-                    if (links.getString(i).equals(urlLoop)){
+                    if (links.getString(i).equals(urlLoop)) {
                         existingJson.append("linksTo", urlAdd);
                         break;
                     }
                 }
             }
-            
+
             if (!isDuplicate) {
                 data.add(json);
 
@@ -180,7 +183,7 @@ public class StorageBarrel extends UnicastRemoteObject implements StorageBarrelI
                     JSONArray jsonArray = new JSONArray(data);
                     fileWriter.write(jsonArray.toString(4)); // Pretty print with indent level 4
                 }
-            } 
+            }
 
             // Notify other barrels if necessary
             if (downloader) {
@@ -217,26 +220,28 @@ public class StorageBarrel extends UnicastRemoteObject implements StorageBarrelI
 
         try {
             barrel = new StorageBarrel();
+            Registry reg = null;
 
             try {
-                LocateRegistry.createRegistry(RMI_PORT);
+                reg = LocateRegistry.createRegistry(RMI_PORT);
                 System.out.println("RMI Registry created at port " + RMI_PORT);
             } catch (RemoteException e) {
+                reg = LocateRegistry.getRegistry(RMI_PORT);
                 System.out.println("RMI Registry already running.");
             }
 
             try {
-                Naming.rebind("rmi://localhost:" + RMI_PORT + "/BARREL-" + id, barrel);
+                reg.rebind("BARREL-" + id, barrel);
                 System.out.println("Barrel bound to RMI at " + RMI_ADDRESS + ":" + RMI_PORT);
             } catch (RemoteException e) {
                 System.out.println("Failed to bind Barrel: " + e.getMessage());
             }
 
             // Lookup the gateway interface
-            gateway = (GatewayInterface) Naming.lookup("rmi://" + RMI_ADDRESS + ":" + RMI_PORT + "/GATEWAY");
+            gateway = (GatewayInterface) reg.lookup("rmi://" + RMI_ADDRESS + ":" + RMI_PORT + "/GATEWAY");
             gateway.addBarrel(barrel, id);
             System.out.println("[Barrel-" + id + "]: Added to gateway.");
-            
+
         } catch (Exception e) {
             System.out.println("Exception: " + e);
             e.printStackTrace();

@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,28 +19,32 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 //
-public class Gateway extends UnicastRemoteObject implements GatewayInterface{
+public class Gateway extends UnicastRemoteObject implements GatewayInterface {
     private BlockingQueue<String> urlQueue;
     // private ArrayList<StorageBarrelInterface> activeBarrels;
     private Map<Long, StorageBarrelInterface> activeBarrels;
     private static Map<String, Boolean> visited;
-    //Gateway
+
+    // Gateway
     /**
      * Constructs a new Gateway instance.
      * Initiates the RMI for the Queue and the Barrels.
+     * 
      * @throws RemoteException if an RMI error occurs.
      */
     public Gateway() throws RemoteException {
         try {
-            //Create a shared queue for URLs
+            // Create a shared queue for URLs
             urlQueue = new LinkedBlockingQueue<>();
             // activeBarrels = new ArrayList<>();
             activeBarrels = new HashMap<Long, StorageBarrelInterface>();
             visited = new HashMap<String, Boolean>();
 
-        } catch (Exception e) {System.out.println("Exception: " + e); }
+        } catch (Exception e) {
+            System.out.println("Exception: " + e);
+        }
     }
-    
+
     @Override
     public void addToQueue(String url) throws RemoteException {
         try {
@@ -72,17 +77,17 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface{
         ArrayList<String> result = new ArrayList<String>();
 
         switch (option) {
-            case 1://Admin Page
+            case 1:// Admin Page
                 break;
-        
-            case 2://Index URL
+
+            case 2:// Index URL
                 try {
                     String url = URLDecoder.decode(message, StandardCharsets.UTF_8);
-                    //Check URL
-                    if(!url.toLowerCase().startsWith("http")){
+                    // Check URL
+                    if (!url.toLowerCase().startsWith("http")) {
                         ArrayList<String> auxResult = new ArrayList<>();
                         auxResult.add("URL not valid");
-                        result= auxResult;
+                        result = auxResult;
                         break;
                     }
 
@@ -94,21 +99,21 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface{
                         e.printStackTrace();
                     }
 
-                    //Result
+                    // Result
                     ArrayList<String> auxResult = new ArrayList<>();
                     auxResult.add("URL added");
-                    result= auxResult;
+                    result = auxResult;
                 } catch (Exception e) {
                     System.out.println("Exception indexing: " + e);
                 }
-            case 3://Search URL
+            case 3:// Search URL
                 try {
                     String url = URLDecoder.decode(message, StandardCharsets.UTF_8);
-                    //Check URL
-                    if(!url.toLowerCase().startsWith("http")){
+                    // Check URL
+                    if (!url.toLowerCase().startsWith("http")) {
                         ArrayList<String> auxResult = new ArrayList<>();
                         auxResult.add("URL not valid");
-                        result= auxResult;
+                        result = auxResult;
                         break;
                     }
 
@@ -124,20 +129,20 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface{
                     System.out.println("Exception indexing: " + e);
                     e.printStackTrace();
                 }
-            case 4://Search Keyword
-            try {
-                System.out.println("Searching: " + message);
-
+            case 4:// Search Keyword
                 try {
-                    StorageBarrelInterface b = this.getRandomBarrel(0);
-                    result = b.searchWords(message);
-                } catch (RemoteException e) {
-                    System.out.println("Error sending info to Barrels");
-                    e.printStackTrace();
+                    System.out.println("Searching: " + message);
+
+                    try {
+                        StorageBarrelInterface b = this.getRandomBarrel(0);
+                        result = b.searchWords(message);
+                    } catch (RemoteException e) {
+                        System.out.println("Error sending info to Barrels");
+                        e.printStackTrace();
+                    }
+                } catch (Exception e) {
+                    System.out.println("Exception indexing: " + e);
                 }
-            } catch (Exception e) {
-                System.out.println("Exception indexing: " + e);
-            }
         }
 
         return result;
@@ -147,7 +152,7 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface{
     public ArrayList<StorageBarrelInterface> getBarrels(long myId) throws RemoteException {
         ArrayList<StorageBarrelInterface> result = new ArrayList<>();
         ArrayList<Long> barrelsToRemove = new ArrayList<>();
-        
+
         for (long barrelId : activeBarrels.keySet()) {
             try {
                 if (barrelId != myId) {
@@ -161,16 +166,15 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface{
                 barrelsToRemove.add(barrelId);
             }
         }
-        
+
         // Now, remove inactive barrels outside the iteration
         for (Long barrelId : barrelsToRemove) {
             removeBarrel(barrelId);
         }
-        
+
         return result;
     }
 
-    
     public StorageBarrelInterface getRandomBarrel(long myId) throws RemoteException {
         ArrayList<StorageBarrelInterface> availableBarrels = getBarrels(myId);
 
@@ -186,29 +190,27 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface{
     }
 
     @Override
-    public void addBarrel(StorageBarrelInterface barrel, long id) throws RemoteException{
+    public void addBarrel(StorageBarrelInterface barrel, long id) throws RemoteException {
         activeBarrels.put(id, barrel);
     }
 
     @Override
-    public void removeBarrel(long barrelId) throws RemoteException{
+    public void removeBarrel(long barrelId) throws RemoteException {
         activeBarrels.remove(barrelId);
     }
-
-
 
     public static void main(String[] args) {
         // comunica com o cliente:
         String RMI_ADDRESS = "";
         int RMI_PORT = 0;
 
-        //Read information regarding the RMI from "properties.txt"
-        String path =  "properties.txt";
+        // Read information regarding the RMI from "properties.txt"
+        String path = "properties.txt";
         System.out.println("Reading properties from: " + path);
-        try(BufferedReader br = new BufferedReader(new FileReader(new File(path)))){
+        try (BufferedReader br = new BufferedReader(new FileReader(new File(path)))) {
             String line;
 
-            while((line = br.readLine()) != null) {
+            while ((line = br.readLine()) != null) {
                 String[] token = line.split(":");
 
                 if (token[0].trim().equals("RMI Address Gateway")) {
@@ -228,23 +230,23 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface{
         try {
             System.out.println("Starting Gateway...");
             Gateway gateway = new Gateway();
+            Registry reg = null;
 
             // Start the RMI registry if not already running
             try {
-                LocateRegistry.createRegistry(RMI_PORT);
+                reg = LocateRegistry.createRegistry(RMI_PORT);
+                System.setProperty("java.rmi.server.hostname", RMI_ADDRESS);
                 System.out.println("RMI Registry created at port " + RMI_PORT);
             } catch (RemoteException e) {
                 System.out.println("RMI Registry already running.");
             }
 
             try {
-                Naming.rebind("rmi://" + RMI_ADDRESS + ":" + RMI_PORT + "/GATEWAY", gateway);
+                reg.rebind("rmi://" + RMI_ADDRESS + ":" + RMI_PORT + "/GATEWAY", gateway);
                 System.out.println("Gateway bound to RMI at " + RMI_ADDRESS + ":" + RMI_PORT);
             } catch (RemoteException e) {
                 System.out.println("Failed to bind Gateway: " + e.getMessage());
             }
-
-            
 
         } catch (Exception e) {
             e.printStackTrace();

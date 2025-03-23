@@ -6,6 +6,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.URL;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -19,7 +21,7 @@ import org.jsoup.select.Elements;
  * extract information from the web pages and send it to the barrels
  * through RMI and get urls from the queue through RMI.
  */
-public class Downloader extends Thread{
+public class Downloader extends Thread {
 
     /**
      * Constructs a Downloader thread.
@@ -44,88 +46,109 @@ public class Downloader extends Thread{
     public void run() {
         System.out.println("Downloader thread started: " + this.getName());
 
-        while(true) {
-            //Read information regarding the RMI from "properties.txt"
-            String path = "properties.txt";
-            String RMI_INFO = "";
+        // Read information regarding the RMI from "properties.txt"
+        String path = "properties.txt";
+        String RMI_ADDRESS = "";
+        int RMI_PORT = 0;
+        GatewayInterface gateway = null;
+        Registry reg = null;
 
-            try(BufferedReader br = new BufferedReader(new FileReader(new File(path)))){
-                String line;
+        try (BufferedReader br = new BufferedReader(new FileReader(new File(path)))) {
+            String line;
 
-                while((line = br.readLine()) != null) {
-                    String[] token = line.split(":");
+            while ((line = br.readLine()) != null) {
+                String[] token = line.split(":");
 
-                    if (token[0].trim().equals("RMI Address Gateway")) {
-                        RMI_INFO = token[1].trim();
-                    }
-
-                    if (token[0].trim().equals("RMI Port")) {
-                        RMI_INFO += ":" + Integer.parseInt(token[1].trim());
-                    }
+                if (token[0].trim().equals("RMI Address Gateway")) {
+                    RMI_ADDRESS = token[1].trim();
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
+
+                if (token[0].trim().equals("RMI Port")) {
+                    RMI_PORT = Integer.parseInt(token[1].trim());
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        try {
+
+            try {
+                reg = LocateRegistry.getRegistry(RMI_PORT);
+                System.setProperty("java.rmi.server.hostname", RMI_ADDRESS);
+                System.out.println("RMI Registry created at port " + RMI_PORT);
+            } catch (RemoteException e) {
+                System.out.println("RMI Registry already running.");
             }
 
             try {
-                GatewayInterface gateway = null;
+                gateway = (GatewayInterface) reg.lookup("rmi://" + RMI_ADDRESS + ":" + RMI_PORT + "/GATEWAY");
+            } catch (Exception e) {
+                System.out.println("Exception: " + e);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
+        while (true) {
+            String url = "";
+
+            try {
+                url = gateway.popFromQueue();
+            } catch (RemoteException e) {
+                System.out.println("Error accessing queue: " + e.getMessage());
+                continue;
+            }
+
+            if (!ValidURL(url)) {
+                continue;
+            }
+
+            JSONObject info = searchURL(url);
+
+            // Send info to all barrels
+            int retries = 3; // Maximum number of attempts
+            boolean success = false;
+
+            while (!success && retries > 0) {
                 try {
-                    gateway = (GatewayInterface) java.rmi.Naming.lookup("rmi://" + RMI_INFO + "/GATEWAY");
-                } catch (Exception e) {
-                    System.out.println("Exception: " + e);
-                }
+                    for (StorageBarrelInterface b : gateway.getBarrels(0)) {
+                        b.addInfo(info.toString(), true);
+                    }
+                    success = true; // Operation succeeded
+                } catch (RemoteException e) {
+                    retries--;
+                    System.out.println("Error accessing Barrels. Retries left: " + retries);
 
-                String url = gateway.popFromQueue();
-
-                if (!ValidURL(url)) {
-                    continue;
-                }
-
-                JSONObject info = searchURL(url);
-
-                // Send info to all barrels
-                int retries = 3; // Maximum number of attempts
-                boolean success = false;
-                
-                while (!success && retries > 0) {
                     try {
-                        for (StorageBarrelInterface b : gateway.getBarrels(0)) {
-                            b.addInfo(info.toString(), true);
-                        }
-                        success = true; // Operation succeeded
-                    } catch (RemoteException e) {
-                        retries--;
-                        System.out.println("Error accessing Barrels. Retries left: " + retries);
-                        
                         if (retries > 0) {
                             Thread.sleep(1000); // Wait 1 second before retrying
-                        } else {
-                            System.out.println("Failed after multiple attempts");
-                            e.printStackTrace();
                         }
+                    } catch (InterruptedException e1) {
+                        System.out.println("Failed after multiple attempts");
+                        e1.printStackTrace();
                     }
                 }
-
-                JSONArray links = info.getJSONArray("links");
-                for (int i = 0; i < links.length(); i++) {
-                    String link = links.getString(i);
-                    try {
-                        gateway.sendMessage((String) link, 2);
-                    } catch (Exception e) {
-                        System.out.println("Error sending message: " + e.getMessage());
-                        // Continue processing other links
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
             }
+
+            JSONArray links = info.getJSONArray("links");
+            for (int i = 0; i < links.length(); i++) {
+                String link = links.getString(i);
+                try {
+                    gateway.sendMessage((String) link, 2);
+                } catch (Exception e) {
+                    System.out.println("Error sending message: " + e.getMessage());
+                    // Continue processing other links
+                }
+            }
+
         }
     }
-    
+
     /**
      * This function serches a web page using the Jsoup library
      * and extracts the information.
+     * 
      * @param url The url to be searched.
      * @return The JSONObject with the information of the url.
      */
@@ -133,22 +156,22 @@ public class Downloader extends Thread{
         System.out.println("Searching for: " + url);
         JSONObject json = new JSONObject();
 
-        //Get the url information(title, description, associated urls)
+        // Get the url information(title, description, associated urls)
         try {
-            //Url
+            // Url
             json.put("url", url);
 
-            //Title
+            // Title
             Document doc = Jsoup.connect(url).get();
             json.put("title", doc.title());
 
-            //Description
+            // Description
             if (doc.select("meta[property=og:description]").attr("content").equals("")) {
                 Elements paragraphs = doc.select("p");
                 StringBuilder textBuilder = new StringBuilder();
-                int count = 0;//Counts words
+                int count = 0;// Counts words
                 for (Element paragraph : paragraphs) {
-                    String[] words = paragraph.text().split("\\s+");//Seperates words by spaces
+                    String[] words = paragraph.text().split("\\s+");// Seperates words by spaces
                     for (String word : words) {
                         if (count >= 100) {
                             break;
@@ -159,7 +182,7 @@ public class Downloader extends Thread{
                     if (count >= 100) {
                         break;
                     }
-                
+
                 }
 
                 String text = textBuilder.toString().trim();
@@ -169,7 +192,7 @@ public class Downloader extends Thread{
                 json.put("description", doc.select("meta[property=og:description]").attr("content"));
             }
 
-            //Associated Urls
+            // Associated Urls
             Elements links = doc.select("a[href]");
             JSONArray linksArray = new JSONArray();
 
@@ -185,10 +208,10 @@ public class Downloader extends Thread{
             e.printStackTrace();
             json.put("url", "Not available");
         }
-        
+
         return json;
     }
-    
+
     public static void main(String[] args) {
         try {
             Downloader downloader = new Downloader();

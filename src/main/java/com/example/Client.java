@@ -51,7 +51,7 @@ public class Client {
             System.setProperty("java.rmi.server.hostname", RMI_ADDRESS);
             Registry reg = LocateRegistry.getRegistry(RMI_ADDRESS, RMI_PORT);
             System.out.println("RMI Registry attatched at port " + RMI_PORT);
-            gateway = (GatewayInterface) reg.lookup("GATEWAY");
+            gateway = (GatewayInterface) reg.lookup("rmi://" + RMI_ADDRESS + ":" + RMI_PORT + "/GATEWAY");
         } catch (Exception e) {
             System.out.println("Error connecring to gateway!");
             e.printStackTrace();
