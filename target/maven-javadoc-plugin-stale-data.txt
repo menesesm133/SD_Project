@@ -1,0 +1,50 @@
+-J-Duser.language=
+-J-Duser.country=
+@options
+@packages
+-classpath
+'C:/Users/Utilizador/.m2/repository/org/jsoup/jsoup/1.15.3/jsoup-1.15.3.jar;C:/Users/Utilizador/.m2/repository/org/json/json/20210307/json-20210307.jar'
+-encoding
+'UTF-8'
+-protected
+-sourcepath
+'C:/Users/Utilizador/SD_PROJECT(2025)/SD_Project/src/main/java'
+-author
+-bottom
+'Copyright &#169; 2025. All rights reserved.'
+-charset
+'UTF-8'
+-d
+'C:/Users/Utilizador/SD_PROJECT(2025)/SD_Project/target/reports/apidocs'
+-docencoding
+'UTF-8'
+-doctitle
+'SD_Project 1.0-SNAPSHOT API'
+-use
+-version
+-windowtitle
+'SD_Project 1.0-SNAPSHOT API'
+com.example
+C:\Users\Utilizador\.m2\repository\org\jsoup\jsoup\1.15.3\jsoup-1.15.3.jar = 1742473363159
+C:\Users\Utilizador\.m2\repository\org\json\json\20210307\json-20210307.jar = 1741264210909
+C:\Users\Utilizador\SD_PROJECT(2025)\SD_Project\src\main\java = 1741884978269
+C:\Users\Utilizador\SD_PROJECT(2025)\SD_Project\target\reports\apidocs\allclasses-index.html = 1742757816401
+C:\Users\Utilizador\SD_PROJECT(2025)\SD_Project\target\reports\apidocs\allpackages-index.html = 1742757816405
+C:\Users\Utilizador\SD_PROJECT(2025)\SD_Project\target\reports\apidocs\copy.svg = 1742757816466
+C:\Users\Utilizador\SD_PROJECT(2025)\SD_Project\target\reports\apidocs\element-list = 1742757816276
+C:\Users\Utilizador\SD_PROJECT(2025)\SD_Project\target\reports\apidocs\help-doc.html = 1742757816457
+C:\Users\Utilizador\SD_PROJECT(2025)\SD_Project\target\reports\apidocs\index-all.html = 1742757816445
+C:\Users\Utilizador\SD_PROJECT(2025)\SD_Project\target\reports\apidocs\index.html = 1742757816450
+C:\Users\Utilizador\SD_PROJECT(2025)\SD_Project\target\reports\apidocs\jquery-ui.overrides.css = 1742757816497
+C:\Users\Utilizador\SD_PROJECT(2025)\SD_Project\target\reports\apidocs\member-search-index.js = 1742757816413
+C:\Users\Utilizador\SD_PROJECT(2025)\SD_Project\target\reports\apidocs\module-search-index.js = 1742757816407
+C:\Users\Utilizador\SD_PROJECT(2025)\SD_Project\target\reports\apidocs\overview-tree.html = 1742757816380
+C:\Users\Utilizador\SD_PROJECT(2025)\SD_Project\target\reports\apidocs\package-search-index.js = 1742757816409
+C:\Users\Utilizador\SD_PROJECT(2025)\SD_Project\target\reports\apidocs\script.js = 1742757816464
+C:\Users\Utilizador\SD_PROJECT(2025)\SD_Project\target\reports\apidocs\search-page.js = 1742757816474
+C:\Users\Utilizador\SD_PROJECT(2025)\SD_Project\target\reports\apidocs\search.html = 1742757816448
+C:\Users\Utilizador\SD_PROJECT(2025)\SD_Project\target\reports\apidocs\search.js = 1742757816471
+C:\Users\Utilizador\SD_PROJECT(2025)\SD_Project\target\reports\apidocs\serialized-form.html = 1742757816324
+C:\Users\Utilizador\SD_PROJECT(2025)\SD_Project\target\reports\apidocs\stylesheet.css = 1742757816461
+C:\Users\Utilizador\SD_PROJECT(2025)\SD_Project\target\reports\apidocs\tag-search-index.js = 1742757816415
+C:\Users\Utilizador\SD_PROJECT(2025)\SD_Project\target\reports\apidocs\type-search-index.js = 1742757816411
