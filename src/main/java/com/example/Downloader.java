@@ -30,6 +30,12 @@ public class Downloader extends Thread {
         super("Server: " + (long) (Math.random() * 1000));
     }
 
+    /**
+     * This function checks if the url is valid.
+     * 
+     * @param url The url to be checked.
+     * @return True if the url is valid, false otherwise.
+     */
     public boolean ValidURL(String url) {
         try {
             URL check = new URL(url);
@@ -43,6 +49,9 @@ public class Downloader extends Thread {
         }
     }
 
+    /**
+     * This function is responsible for the downloader thread.
+     */
     public void run() {
         System.out.println("Downloader thread started: " + this.getName());
 
@@ -218,6 +227,11 @@ public class Downloader extends Thread {
         return json;
     }
 
+    /**
+     * This function is responsible for starting the downloader thread.
+     * 
+     * @param args The command line arguments.
+     */
     public static void main(String[] args) {
         try {
             Downloader downloader = new Downloader();

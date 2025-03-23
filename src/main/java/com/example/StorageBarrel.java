@@ -16,11 +16,20 @@ import java.util.Collections;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+/**
+ * This class is responsible for the storage barrel that stores the information
+ * extracted from the web pages.
+ */
 public class StorageBarrel extends UnicastRemoteObject implements StorageBarrelInterface {
     private static GatewayInterface gateway;
     private static final long id = (long) (Math.random() * 1000 + 1);
     private static StorageBarrel barrel;
 
+    /**
+     * Constructs a StorageBarrel.
+     * 
+     * @throws RemoteException
+     */
     public StorageBarrel() throws RemoteException {
         super();
         // Create folder if it doesn't already exist:
@@ -37,11 +46,22 @@ public class StorageBarrel extends UnicastRemoteObject implements StorageBarrelI
         }
     }
 
+    /**
+     * This function returns the id of the barrel.
+     * 
+     * @return The id of the barrel.
+     */
     @Override
     public long getId() throws RemoteException {
         return id;
     }
 
+    /**
+     * This function searches for the words in the barrel.
+     * 
+     * @param query The words to be searched.
+     * @return The results of the search.
+     */
     @Override
     public ArrayList<String> searchWords(String query) throws RemoteException {
         ArrayList<String> results = new ArrayList<>();
@@ -86,6 +106,12 @@ public class StorageBarrel extends UnicastRemoteObject implements StorageBarrelI
         return results;
     }
 
+    /**
+     * This function searches for the URL in the barrel.
+     * 
+     * @param url The URL to be searched.
+     * @return The results of the search.
+     */
     @Override
     public ArrayList<String> searchURL(String url) throws RemoteException {
         ArrayList<String> results = new ArrayList<>();
@@ -110,6 +136,11 @@ public class StorageBarrel extends UnicastRemoteObject implements StorageBarrelI
         return results;
     }
 
+    /**
+     * This function returns the information stored in the barrel.
+     * 
+     * @return The information stored in the barrel.
+     */
     @Override
     public ArrayList<JSONObject> getInfo() throws RemoteException {
         ArrayList<JSONObject> data = new ArrayList<>();
@@ -139,6 +170,12 @@ public class StorageBarrel extends UnicastRemoteObject implements StorageBarrelI
         return data;
     }
 
+    /**
+     * This function returns the information stored in the barrel as a list of
+     * strings.
+     * 
+     * @return The information stored in the barrel as a list of strings.
+     */
     @Override
     public ArrayList<String> getInfoString() throws RemoteException {
         ArrayList<String> data = new ArrayList<>();
@@ -168,6 +205,13 @@ public class StorageBarrel extends UnicastRemoteObject implements StorageBarrelI
         return data;
     }
 
+    /**
+     * This function adds information to the barrel.
+     * 
+     * @param info       The information to be added.
+     * @param downloader A boolean indicating if the information was added by the
+     *                   downloader.
+     */
     @Override
     public void addInfo(String info, boolean downloader) throws RemoteException {
         try {
@@ -226,6 +270,11 @@ public class StorageBarrel extends UnicastRemoteObject implements StorageBarrelI
         }
     }
 
+    /**
+     * Main method to start the StorageBarrel.
+     * 
+     * @param args The arguments to the main method.
+     */
     public static void main(String[] args) {
         String path = "properties.txt";
         String RMI_ADDRESS = "";

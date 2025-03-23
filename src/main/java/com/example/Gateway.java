@@ -19,6 +19,10 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+/**
+ * This class is responsible for the Gateway that will communicate with the
+ * barrels and the clients.
+ */
 public class Gateway extends UnicastRemoteObject implements GatewayInterface {
     private BlockingQueue<String> urlQueue;
     private Map<Long, StorageBarrelInterface> activeBarrels;
@@ -29,6 +33,11 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
     // List to store admin callbacks
     private CopyOnWriteArrayList<AdminCallback> adminCallbacks;
 
+    /**
+     * Constructs a Gateway.
+     * 
+     * @throws RemoteException
+     */
     public Gateway() throws RemoteException {
         try {
             urlQueue = new LinkedBlockingQueue<>();
@@ -43,6 +52,12 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         }
     }
 
+    /**
+     * This function is responsible for registering the admin callback.
+     * 
+     * @param callback The callback to be registered.
+     * @throws RemoteException
+     */
     @Override
     public void registerAdminCallback(AdminCallback callback) throws RemoteException {
         if (!adminCallbacks.contains(callback)) {
@@ -53,12 +68,21 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         }
     }
 
+    /**
+     * This function is responsible for unregistering the admin callback.
+     * 
+     * @param callback The callback to be unregistered.
+     * @throws RemoteException
+     */
     @Override
     public void unregisterAdminCallback(AdminCallback callback) throws RemoteException {
         adminCallbacks.remove(callback);
         System.out.println("[Server]: Admin callback unregistered");
     }
 
+    /**
+     * This function is responsible for notifying the admin callbacks.
+     */
     private void notifyAdminCallbacks() {
         if (adminCallbacks.isEmpty()) {
             return;
@@ -89,6 +113,12 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         }
     }
 
+    /**
+     * This function is responsible for adding a URL to the queue.
+     * 
+     * @param url The URL to be added to the queue.
+     * @throws RemoteException
+     */
     @Override
     public void addToQueue(String url) throws RemoteException {
         try {
@@ -105,6 +135,12 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         }
     }
 
+    /**
+     * This function is responsible for popping a URL from the queue.
+     * 
+     * @return The URL popped from the queue.
+     * @throws RemoteException
+     */
     @Override
     public String popFromQueue() throws RemoteException {
         try {
@@ -118,6 +154,14 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         }
     }
 
+    /**
+     * This function is responsible for sending a message to the Gateway.
+     * 
+     * @param message The message to be sent.
+     * @param option  The option to be used.
+     * @return The result of the message.
+     * @throws RemoteException
+     */
     @Override
     public ArrayList<String> sendMessage(String message, int option) throws RemoteException {
         ArrayList<String> result = new ArrayList<String>();
@@ -211,6 +255,13 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         return result;
     }
 
+    /**
+     * This function is responsible for getting the active barrels.
+     * 
+     * @param myId The ID of the barrel.
+     * @return The barrels.
+     * @throws RemoteException
+     */
     @Override
     public ArrayList<StorageBarrelInterface> getBarrels(long myId) throws RemoteException {
         ArrayList<StorageBarrelInterface> result = new ArrayList<>();
@@ -246,6 +297,13 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         return result;
     }
 
+    /**
+     * This function is responsible for getting a random barrel.
+     * 
+     * @param myId The ID of the barrel.
+     * @return The random barrel.
+     * @throws RemoteException
+     */
     @Override
     public StorageBarrelInterface getRandomBarrel(long myId) throws RemoteException {
         ArrayList<StorageBarrelInterface> availableBarrels = getBarrels(myId);
@@ -261,18 +319,36 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         return availableBarrels.get(randomIndex);
     }
 
+    /**
+     * This function is responsible for adding a barrel.
+     * 
+     * @param barrel The barrel to be added.
+     * @param id     The ID of the barrel.
+     * @throws RemoteException
+     */
     @Override
     public void addBarrel(StorageBarrelInterface barrel, long id) throws RemoteException {
         activeBarrels.put(id, barrel);
         notifyAdminCallbacks(); // Notify after adding barrel
     }
 
+    /**
+     * This function is responsible for removing a barrel.
+     * 
+     * @param barrelId The ID of the barrel to be removed.
+     * @throws RemoteException
+     */
     @Override
     public void removeBarrel(long barrelId) throws RemoteException {
         activeBarrels.remove(barrelId);
         notifyAdminCallbacks(); // Notify after removing barrel
     }
 
+    /**
+     * This function is responsible for starting the Gateway.
+     * 
+     * @param args The arguments to be used.
+     */
     public static void main(String[] args) {
         // comunica com o cliente:
         String RMI_ADDRESS = "";

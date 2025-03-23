@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * This class is responsible for the client functionality.
+ * This class is responsible for the client side of the project.
  */
 public class Client extends UnicastRemoteObject implements AdminCallback {
     private ArrayList<String> currentAdminData = new ArrayList<>();
@@ -26,6 +26,11 @@ public class Client extends UnicastRemoteObject implements AdminCallback {
         super();
     }
 
+    /**
+     * This method is called by the server to update the admin data.
+     * 
+     * @param adminData The new admin data.
+     */
     @Override
     public void updateAdminData(ArrayList<String> adminData) throws RemoteException {
         this.currentAdminData = adminData;
@@ -40,6 +45,9 @@ public class Client extends UnicastRemoteObject implements AdminCallback {
         }
     }
 
+    /**
+     * This method clears the console.
+     */
     private void clearConsole() {
         try {
             String operatingSystem = System.getProperty("os.name");
@@ -57,6 +65,10 @@ public class Client extends UnicastRemoteObject implements AdminCallback {
         }
     }
 
+    /**
+     * This method is responsible for the client menu
+     * and the interaction with the gateway.
+     */
     private void menu() {
         // Read information regarding the RMI from "properties.txt"
         String path = "properties.txt";
