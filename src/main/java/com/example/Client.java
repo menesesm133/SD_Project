@@ -215,7 +215,7 @@ public class Client extends UnicastRemoteObject implements AdminCallback {
                                 System.out.println("Exception indexing: " + e);
                             }
                         } else {
-                            ArrayList<String> result = gateway.sendMessage(keyword, 4);
+                            ArrayList<String> result = gateway.sendMessage(keyword.toLowerCase(), 4);
                             int count = 0;
                             String read = "";
 
