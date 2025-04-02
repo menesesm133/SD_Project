@@ -18,6 +18,14 @@ if ! command -v mvn &> /dev/null; then
     exit 1
 fi
 
+# Clean and compile the project
+echo "🔧 Building project with Maven..."
+mvn clean package
+if [ $? -ne 0 ]; then
+    echo "❌ Build failed!"
+    exit 1
+fi
+
 ## Script 1: Run StorageBarrel
 cat <<EOL > run_storage_barrel.sh
 #!/bin/bash
@@ -51,9 +59,23 @@ cat <<EOL > run_client.sh
 #!/bin/bash
 
 echo "💻 Starting Client..."
-java $JAVA_OPTS -cp "$CLASSPATH" com.example.Client > "$LOG_DIR/client_$(date +%Y%m%d%H%M%S).log" 2>&1
+java $JAVA_OPTS -cp "$CLASSPATH" com.example.Client
 EOL
 chmod +x run_client.sh
 
 
-echo "✅ Scripts created: run_storage_barrel.sh, run_downloader.sh, run_client.sh"
+## Script 4: Run Gateway
+cat <<EOL > run_gateway.sh
+#!/bin/bash
+
+echo "📥 Starting Gateway..."
+java $JAVA_OPTS -cp "$CLASSPATH" com.example.Gateway > "$LOG_DIR/gateway_$(date +%Y%m%d%H%M%S).log" 2>&1 &
+GATEWAY_PID=$!
+
+trap "echo '🛑 Stopping Gateway...'; kill $GATEWAY_PID; exit 0" SIGINT
+wait $GATEWAY_PID
+EOL
+chmod +x run_gateway.sh
+
+
+echo "✅ Scripts created: run_storage_barrel.sh, run_downloader.sh, run_client.sh, run_gateway.sh"
