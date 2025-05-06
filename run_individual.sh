@@ -31,8 +31,8 @@ cat <<EOL > run_storage_barrel.sh
 #!/bin/bash
 
 echo "🛢️ Starting StorageBarrel..."
-java $JAVA_OPTS -cp "$CLASSPATH" com.example.StorageBarrel > "$LOG_DIR/storage_barrel_$(date +%Y%m%d%H%M%S).log" 2>&1 &
-BARREL_PID=$!
+java $JAVA_OPTS -cp "$CLASSPATH" com.example.StorageBarrel
+BARREL1_PID=$!
 
 trap "echo '🛑 Stopping StorageBarrel...'; kill $BARREL_PID; exit 0" SIGINT
 wait $BARREL_PID
@@ -45,7 +45,7 @@ cat <<EOL > run_downloader.sh
 #!/bin/bash
 
 echo "📥 Starting Downloader..."
-java $JAVA_OPTS -cp "$CLASSPATH" com.example.Downloader > "$LOG_DIR/downloader_$(date +%Y%m%d%H%M%S).log" 2>&1 &
+java $JAVA_OPTS -cp "$CLASSPATH" com.example.Downloader
 DOWNLOADER_PID=$!
 
 trap "echo '🛑 Stopping Downloader...'; kill $DOWNLOADER_PID; exit 0" SIGINT
